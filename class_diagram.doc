@@ -1,0 +1,111 @@
+# Class Diagram - Anomashield
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '10px'}}}%%
+classDiagram
+    class DataPoisonDetector {
+        -scaler: StandardScaler
+        -config: DetectionConfig
+        +__init__()
+        +detect_numeric_columns(df) List[str]
+        +split_data_into_chunks(df, num_chunks) List[DataFrame]
+        +z_score_detection(df, numeric_cols, threshold) Dict[int, bool]
+        +iqr_detection(df, numeric_cols, multiplier) Dict[int, bool]
+        +isolation_forest_detection(df, numeric_cols) Dict[int, bool]
+        +one_class_svm_detection(df, numeric_cols) Dict[int, bool]
+        +process_chunk(chunk, chunk_id) Dict[str, Any]
+        +detect_poisoned_data(file_path) Dict[str, Any]
+    }
+
+    class DetectionConfig {
+        -config_file: str
+        -config: Dict[str, Any]
+        -DEFAULT_CONFIG: Dict[str, Any]
+        +__init__()
+        +load_config() Dict[str, Any]
+        +save_config(config) bool
+        +get(key, default) Any
+        +set(key, value) bool
+        +update(updates) bool
+        +reset_to_defaults() bool
+        +get_adaptive_contamination(dataset_size) float
+        +get_adaptive_nu(dataset_size) float
+        +validate_config() Dict[str, str]
+    }
+
+    class CSVUpload {
+        +file: FileField
+        +uploaded_at: DateTimeField
+        +filename: CharField
+        +total_rows: IntegerField
+        +flagged_rows: IntegerField
+        +clean_rows: IntegerField
+        +z_score_flagged: IntegerField
+        +iqr_flagged: IntegerField
+        +isolation_forest_flagged: IntegerField
+        +one_class_svm_flagged: IntegerField
+        +is_processed: BooleanField
+        +processing_error: TextField
+        +get_file_size() float
+        +get_clean_filename() str
+        +detection_rate: float
+    }
+
+    class DetectionResult {
+        +csv_upload: ForeignKey
+        +row_index: IntegerField
+        +is_flagged: BooleanField
+        +z_score_flag: BooleanField
+        +iqr_flag: BooleanField
+        +isolation_forest_flag: BooleanField
+        +one_class_svm_flag: BooleanField
+        +row_data: JSONField
+    }
+
+    class DetectionConfigForm {
+        +z_score_threshold: FloatField
+        +iqr_multiplier: FloatField
+        +consensus_threshold: IntegerField
+        +distributed_chunks: IntegerField
+        +isolation_forest_small: FloatField
+        +isolation_forest_medium: FloatField
+        +isolation_forest_large: FloatField
+        +one_class_svm_small: FloatField
+        +one_class_svm_medium: FloatField
+        +one_class_svm_large: FloatField
+        +clean() Dict[str, Any]
+        +save_config() bool
+    }
+
+    class CSVUploadForm {
+        +file: FileField
+        +clean_file() FileField
+    }
+
+    class User {
+        +username: CharField
+        +email: EmailField
+        +password: CharField
+        +is_authenticated: BooleanField
+    }
+
+    %% Relationships
+    DataPoisonDetector --> DetectionConfig : uses
+    CSVUpload ||--o{ DetectionResult : has many
+    DetectionConfigForm --> DetectionConfig : configures
+    CSVUploadForm --> CSVUpload : creates
+    User ||--o{ CSVUpload : uploads
+    DetectionResult --> CSVUpload : belongs to
+```
+
+## Key Classes and Relationships:
+
+1. **DataPoisonDetector**: Core detection engine implementing multiple anomaly detection algorithms
+2. **DetectionConfig**: Manages configuration parameters for all detection methods
+3. **CSVUpload**: Django model storing uploaded files and detection metadata
+4. **DetectionResult**: Django model storing detailed row-level detection results
+5. **DetectionConfigForm**: Django form for configuring detection parameters
+6. **CSVUploadForm**: Django form for file uploads
+7. **User**: Django's built-in user model for authentication
+
+Anomashield follows a layered architecture with clear separation between data models, business logic, and configuration management.

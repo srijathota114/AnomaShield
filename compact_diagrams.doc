@@ -1,0 +1,230 @@
+# Compact Mermaid Diagrams for Anomashield
+
+## 1. Compact Class Diagram
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '8px', 'primaryColor': '#ff6b6b', 'primaryTextColor': '#fff', 'primaryBorderColor': '#ff6b6b', 'lineColor': '#333', 'secondaryColor': '#4ecdc4', 'tertiaryColor': '#45b7d1'}}}%%
+classDiagram
+    class User {
+        +name: String
+        +email: String
+        +uploadFile()
+    }
+    
+    class DataPoisonDetector {
+        +detectAnomalies()
+        +processChunks()
+    }
+    
+    class CSVUpload {
+        +file: File
+        +results: Dict
+    }
+    
+    class DetectionResult {
+        +isFlagged: Boolean
+        +confidence: Float
+    }
+    
+    User --> CSVUpload : uploads
+    CSVUpload --> DataPoisonDetector : processes
+    DataPoisonDetector --> DetectionResult : generates
+```
+
+## 2. Compact State Diagram
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '8px'}}}%%
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Uploading : User uploads file
+    Uploading --> Processing : File validated
+    Processing --> Analyzing : ML inference
+    Analyzing --> Storing : Save results
+    Storing --> Ready : Results complete
+    Ready --> Idle : User views results
+    Processing --> Error : Processing failed
+    Error --> Idle : Retry
+```
+
+## 3. Compact Sequence Diagram
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '8px'}}}%%
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant A as API
+    participant D as Detector
+    participant DB as Database
+    
+    U->>F: Upload CSV
+    F->>A: Send file
+    A->>D: Process data
+    D->>D: Run detection
+    D->>DB: Store results
+    DB-->>D: Confirm
+    D-->>A: Return results
+    A-->>F: Display results
+    F-->>U: Show analysis
+```
+
+## 4. Compact Activity Diagram
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '8px'}}}%%
+flowchart TD
+    Start([Start]) --> Login[User Login]
+    Login --> Action{Action?}
+    Action -->|Upload| Upload[Upload File]
+    Action -->|Settings| Config[Configure Settings]
+    Upload --> Process[Process Data]
+    Process --> Results[Show Results]
+    Config --> Settings[Update Settings]
+    Settings --> Action
+    Results --> Action
+    Action -->|Logout| End([End])
+```
+
+## 5. Compact System Architecture
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '8px'}}}%%
+graph TB
+    subgraph "Frontend"
+        UI[Web Interface]
+    end
+    
+    subgraph "Backend"
+        API[API Gateway]
+        DET[Detection Engine]
+        CONF[Config Service]
+    end
+    
+    subgraph "Storage"
+        DB[(Database)]
+        FS[File Storage]
+    end
+    
+    UI --> API
+    API --> DET
+    API --> CONF
+    DET --> DB
+    DET --> FS
+    CONF --> DB
+```
+
+## 6. Compact Data Flow Diagram
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '8px'}}}%%
+graph LR
+    User[User] -->|CSV File| Upload[Upload Service]
+    Upload -->|Data| Process[Detection Engine]
+    Process -->|Results| Store[(Database)]
+    Store -->|Report| User
+    Process -->|Config| Config[Config Service]
+```
+
+## 7. Compact Component Diagram
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '8px'}}}%%
+graph TB
+    subgraph "Anomashield System"
+        subgraph "Presentation Layer"
+            WEB[Web UI]
+            API[REST API]
+        end
+        
+        subgraph "Business Layer"
+            DET[Detection Engine]
+            CONF[Config Manager]
+        end
+        
+        subgraph "Data Layer"
+            DB[(SQLite DB)]
+            FS[File System]
+        end
+    end
+    
+    WEB --> API
+    API --> DET
+    API --> CONF
+    DET --> DB
+    DET --> FS
+    CONF --> DB
+```
+
+## 8. Compact Use Case Diagram
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '8px'}}}%%
+graph LR
+    User[User] --> UC1[Upload CSV]
+    User --> UC2[View Results]
+    User --> UC3[Configure Settings]
+    User --> UC4[Download Clean Data]
+    
+    UC1 --> System[Anomashield System]
+    UC2 --> System
+    UC3 --> System
+    UC4 --> System
+```
+
+## 9. Compact Deployment Diagram
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '8px'}}}%%
+graph TB
+    subgraph "Client"
+        Browser[Web Browser]
+    end
+    
+    subgraph "Server"
+        Django[Django App]
+        SQLite[(SQLite DB)]
+        Media[Media Files]
+    end
+    
+    Browser -->|HTTP| Django
+    Django --> SQLite
+    Django --> Media
+```
+
+## 10. Compact Network Diagram
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '8px'}}}%%
+graph LR
+    Client[Client Browser] -->|HTTPS| LoadBalancer[Load Balancer]
+    LoadBalancer --> App1[App Server 1]
+    LoadBalancer --> App2[App Server 2]
+    App1 --> Database[(Database)]
+    App2 --> Database
+    Database --> Backup[(Backup)]
+```
+
+## Styling Tips for Compact Diagrams:
+
+1. **Font Size**: Use `fontSize: '8px'` for very compact diagrams
+2. **Colors**: Use consistent color schemes with `primaryColor`, `secondaryColor`, etc.
+3. **Simplified Text**: Remove detailed type annotations
+4. **Short Labels**: Use abbreviations where possible
+5. **Minimal Relationships**: Focus on key connections only
+6. **Theme**: Use `'theme':'base'` for clean, professional look
+
+## Usage Instructions:
+
+1. Copy any diagram code above
+2. Paste into Mermaid Live Editor (https://mermaid.live/)
+3. Adjust font size if needed (6px-10px range)
+4. Export as PNG/SVG for presentations
+5. Customize colors to match your brand
+
+These compact diagrams are perfect for:
+- Mobile presentations
+- Documentation headers
+- Quick system overviews
+- Architecture summaries
+- Process flow charts

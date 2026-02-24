@@ -1,0 +1,248 @@
+/* Custom styles for Data Poison Detection System */
+
+/* Global styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Navigation */
+.navbar-brand {
+    font-weight: 600;
+}
+
+/* Cards */
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: box-shadow 0.15s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    font-weight: 600;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 0.375rem;
+    font-weight: 500;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+}
+
+/* File upload area */
+.form-control {
+    border-radius: 0.375rem;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Tables */
+.table {
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+/* Badges */
+.badge {
+    font-size: 0.75em;
+    font-weight: 500;
+}
+
+/* Charts */
+canvas {
+    max-height: 300px;
+}
+
+/* Feature icons */
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+/* Loading spinner */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Alert messages */
+.alert {
+    border: none;
+    border-radius: 0.375rem;
+}
+
+/* Modal */
+.modal-content {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Footer */
+footer {
+    margin-top: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn-group .btn {
+        margin-bottom: 0.25rem;
+    }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Code blocks */
+pre {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    font-size: 0.875rem;
+    overflow-x: auto;
+}
+
+code {
+    color: #e83e8c;
+    background-color: #f8f9fa;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+}
+
+/* Data tables */
+.table-responsive {
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+
+/* Summary cards */
+.card.bg-primary,
+.card.bg-success,
+.card.bg-danger,
+.card.bg-info {
+    border: none;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+/* Tab styling */
+.nav-tabs .nav-link {
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link.active {
+    color: #0d6efd;
+    border-bottom-color: #0d6efd;
+    background-color: transparent;
+}
+
+.nav-tabs .nav-link:hover {
+    border-color: transparent;
+    color: #0d6efd;
+}
+
+/* Collapse animations */
+.collapse {
+    transition: all 0.3s ease;
+}
+
+/* File upload styling */
+input[type="file"] {
+    cursor: pointer;
+}
+
+input[type="file"]::-webkit-file-upload-button {
+    background: #0d6efd;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+}
+
+input[type="file"]::-webkit-file-upload-button:hover {
+    background: #0b5ed7;
+}
+
+/* Loading states */
+.btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Success/Error states */
+.table-success {
+    background-color: rgba(25, 135, 84, 0.1) !important;
+}
+
+.table-danger {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+}
+
+/* Chart containers */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+/* Responsive chart adjustments */
+@media (max-width: 576px) {
+    .chart-container {
+        height: 250px;
+    }
+} 

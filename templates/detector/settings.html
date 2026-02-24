@@ -1,0 +1,353 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings - Detection Configuration{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1">
+                    <i class="fas fa-cogs me-2 text-primary"></i>
+                    Detection Settings
+                </h2>
+                <p class="text-muted mb-0">
+                    Configure detection parameters and thresholds
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Back to Home
+                </a>
+            </div>
+        </div>
+
+        <!-- Configuration Form -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-sliders-h me-2"></i>
+                    Detection Parameters
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if validation_errors %}
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Configuration Warnings</h6>
+                    <ul class="mb-0">
+                        {% for field, error in validation_errors.items %}
+                        <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <form method="post" id="settings-form">
+                    {% csrf_token %}
+                    
+                    <!-- Basic Parameters -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Basic Detection Parameters
+                            </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.z_score_threshold.id_for_label }}" class="form-label">
+                                    {{ form.z_score_threshold.label }}
+                                </label>
+                                {{ form.z_score_threshold }}
+                                <div class="form-text">{{ form.z_score_threshold.help_text }}</div>
+                                {% if form.z_score_threshold.errors %}
+                                    <div class="text-danger">{{ form.z_score_threshold.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.iqr_multiplier.id_for_label }}" class="form-label">
+                                    {{ form.iqr_multiplier.label }}
+                                </label>
+                                {{ form.iqr_multiplier }}
+                                <div class="form-text">{{ form.iqr_multiplier.help_text }}</div>
+                                {% if form.iqr_multiplier.errors %}
+                                    <div class="text-danger">{{ form.iqr_multiplier.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.consensus_threshold.id_for_label }}" class="form-label">
+                                    {{ form.consensus_threshold.label }}
+                                </label>
+                                {{ form.consensus_threshold }}
+                                <div class="form-text">{{ form.consensus_threshold.help_text }}</div>
+                                {% if form.consensus_threshold.errors %}
+                                    <div class="text-danger">{{ form.consensus_threshold.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.distributed_chunks.id_for_label }}" class="form-label">
+                                    {{ form.distributed_chunks.label }}
+                                </label>
+                                {{ form.distributed_chunks }}
+                                <div class="form-text">{{ form.distributed_chunks.help_text }}</div>
+                                {% if form.distributed_chunks.errors %}
+                                    <div class="text-danger">{{ form.distributed_chunks.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Isolation Forest Parameters -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-tree me-2"></i>
+                                Isolation Forest Parameters
+                            </h6>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.isolation_forest_small.id_for_label }}" class="form-label">
+                                    {{ form.isolation_forest_small.label }}
+                                </label>
+                                {{ form.isolation_forest_small }}
+                                <div class="form-text">{{ form.isolation_forest_small.help_text }}</div>
+                                {% if form.isolation_forest_small.errors %}
+                                    <div class="text-danger">{{ form.isolation_forest_small.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.isolation_forest_medium.id_for_label }}" class="form-label">
+                                    {{ form.isolation_forest_medium.label }}
+                                </label>
+                                {{ form.isolation_forest_medium }}
+                                <div class="form-text">{{ form.isolation_forest_medium.help_text }}</div>
+                                {% if form.isolation_forest_medium.errors %}
+                                    <div class="text-danger">{{ form.isolation_forest_medium.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.isolation_forest_large.id_for_label }}" class="form-label">
+                                    {{ form.isolation_forest_large.label }}
+                                </label>
+                                {{ form.isolation_forest_large }}
+                                <div class="form-text">{{ form.isolation_forest_large.help_text }}</div>
+                                {% if form.isolation_forest_large.errors %}
+                                    <div class="text-danger">{{ form.isolation_forest_large.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- One-Class SVM Parameters -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-brain me-2"></i>
+                                One-Class SVM Parameters
+                            </h6>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.one_class_svm_small.id_for_label }}" class="form-label">
+                                    {{ form.one_class_svm_small.label }}
+                                </label>
+                                {{ form.one_class_svm_small }}
+                                <div class="form-text">{{ form.one_class_svm_small.help_text }}</div>
+                                {% if form.one_class_svm_small.errors %}
+                                    <div class="text-danger">{{ form.one_class_svm_small.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.one_class_svm_medium.id_for_label }}" class="form-label">
+                                    {{ form.one_class_svm_medium.label }}
+                                </label>
+                                {{ form.one_class_svm_medium }}
+                                <div class="form-text">{{ form.one_class_svm_medium.help_text }}</div>
+                                {% if form.one_class_svm_medium.errors %}
+                                    <div class="text-danger">{{ form.one_class_svm_medium.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="{{ form.one_class_svm_large.id_for_label }}" class="form-label">
+                                    {{ form.one_class_svm_large.label }}
+                                </label>
+                                {{ form.one_class_svm_large }}
+                                <div class="form-text">{{ form.one_class_svm_large.help_text }}</div>
+                                {% if form.one_class_svm_large.errors %}
+                                    <div class="text-danger">{{ form.one_class_svm_large.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>
+                                    Save Settings
+                                </button>
+                                <a href="{% url 'reset_settings' %}" class="btn btn-outline-warning" 
+                                   onclick="return confirm('Are you sure you want to reset all settings to defaults?')">
+                                    <i class="fas fa-undo me-2"></i>
+                                    Reset to Defaults
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Current Configuration Display -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Current Configuration
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Basic Parameters</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Z-Score Threshold:</strong> {{ current_config.z_score_threshold }}</li>
+                            <li><strong>IQR Multiplier:</strong> {{ current_config.iqr_multiplier }}</li>
+                            <li><strong>Consensus Threshold:</strong> {{ current_config.consensus_threshold }}</li>
+                            <li><strong>Distributed Chunks:</strong> {{ current_config.distributed_chunks }}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Machine Learning Parameters</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Isolation Forest:</strong></li>
+                            <li class="ms-3">Small: {{ current_config.isolation_forest_contamination.small }}</li>
+                            <li class="ms-3">Medium: {{ current_config.isolation_forest_contamination.medium }}</li>
+                            <li class="ms-3">Large: {{ current_config.isolation_forest_contamination.large }}</li>
+                            <li><strong>One-Class SVM:</strong></li>
+                            <li class="ms-3">Small: {{ current_config.one_class_svm_nu.small }}</li>
+                            <li class="ms-3">Medium: {{ current_config.one_class_svm_nu.medium }}</li>
+                            <li class="ms-3">Large: {{ current_config.one_class_svm_nu.large }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-question-circle me-2"></i>
+                    Parameter Guide
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Z-Score Threshold</h6>
+                        <p class="small text-muted">
+                            Higher values reduce false positives but may miss some outliers. 
+                            Typical range: 2.0-5.0. Default: 4.0 (very conservative).
+                        </p>
+                        
+                        <h6>IQR Multiplier</h6>
+                        <p class="small text-muted">
+                            Higher values reduce false positives. 
+                            Typical range: 1.5-3.0. Default: 2.5 (very conservative).
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Consensus Threshold</h6>
+                        <p class="small text-muted">
+                            Number of methods that must flag a row for it to be considered poisoned.
+                            Higher values = more conservative detection. Range: 1-4. Default: 2.
+                        </p>
+                        
+                        <h6>ML Parameters</h6>
+                        <p class="small text-muted">
+                            Contamination/Nu parameters for machine learning methods.
+                            Higher values = more sensitive detection. 
+                            Should generally increase with dataset size.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Form validation
+    const form = document.getElementById('settings-form');
+    form.addEventListener('submit', function(e) {
+        // Basic validation
+        const zScore = parseFloat(document.getElementById('id_z_score_threshold').value);
+        const iqr = parseFloat(document.getElementById('id_iqr_multiplier').value);
+        const consensus = parseInt(document.getElementById('id_consensus_threshold').value);
+        
+        if (zScore <= 0 || zScore > 10) {
+            alert('Z-Score threshold must be between 0.1 and 10.0');
+            e.preventDefault();
+            return;
+        }
+        
+        if (iqr <= 0 || iqr > 10) {
+            alert('IQR multiplier must be between 0.1 and 10.0');
+            e.preventDefault();
+            return;
+        }
+        
+        if (consensus < 1 || consensus > 4) {
+            alert('Consensus threshold must be between 1 and 4');
+            e.preventDefault();
+            return;
+        }
+    });
+
+    // Real-time validation feedback
+    const inputs = form.querySelectorAll('input[type="number"]');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            const value = parseFloat(this.value);
+            const min = parseFloat(this.min);
+            const max = parseFloat(this.max);
+            
+            if (value < min || value > max) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

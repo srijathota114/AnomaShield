@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - AnomaShield{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h1 class="display-4 text-primary">
+                <i class="fas fa-shield-alt me-3"></i>
+                AnomaShield - Data Poison Detection
+            </h1>
+            <p class="lead text-muted">
+                Advanced machine learning system to detect poisoned/outlier data in your datasets
+            </p>
+        </div>
+
+        <!-- Mode Selection -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-cog me-2"></i>
+                            Choose Your Experience Level
+                        </h6>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="mode" id="basic-mode" value="basic" checked>
+                            <label class="btn btn-outline-success" for="basic-mode">
+                                <i class="fas fa-user me-2"></i>
+                                Basic Mode
+                                <small class="d-block">Simple & Easy</small>
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="mode" id="advanced-mode" value="advanced">
+                            <label class="btn btn-outline-primary" for="advanced-mode">
+                                <i class="fas fa-cogs me-2"></i>
+                                Advanced Mode
+                                <small class="d-block">Full Control</small>
+                            </label>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                <span id="mode-description">Basic Mode: Just upload your file and get results with helpful explanations.</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Card -->
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-upload me-2"></i>
+                    Upload Data File for Analysis
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data" id="upload-form">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.file.id_for_label }}" class="form-label fw-bold">
+                            <i class="fas fa-file-upload me-2"></i>
+                            Select Data File
+                        </label>
+                        {{ form.file }}
+                        {% if form.file.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.file.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Pre-cleaned Dataset Checkbox -->
+                        <div class="form-check mt-3 mb-3">
+                            {{ form.is_precleaned }}
+                            <label class="form-check-label" for="{{ form.is_precleaned.id_for_label }}">
+                                <i class="fas fa-filter me-2"></i>
+                                This is an already-cleaned dataset
+                            </label>
+                            <small class="form-text text-muted d-block mt-1">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Enable this option if you're uploading a dataset that has already been cleaned. The system will use more lenient detection thresholds to reduce false positives.
+                            </small>
+                        </div>
+                        
+                        <div class="form-text" id="file-help">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <span id="file-help-text">Upload a CSV or Excel file (.csv, .xlsx, .xls) with numeric columns. The system will automatically detect numeric features and apply multiple detection methods.</span>
+                        </div>
+                        
+                        <!-- Basic Mode Help -->
+                        <div class="alert alert-info mt-3" id="basic-help" style="display: none;">
+                            <h6><i class="fas fa-lightbulb me-2"></i>How it works in Basic Mode:</h6>
+                            <ul class="mb-0">
+                                <li><strong>Upload:</strong> Just select your data file and click "Analyze"</li>
+                                <li><strong>Detection:</strong> Our system uses 4 different methods to find unusual data</li>
+                                <li><strong>Results:</strong> You'll see clear charts showing which rows are flagged as potentially problematic</li>
+                                <li><strong>Download:</strong> Get a clean version of your data with flagged rows removed</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Advanced Mode Help -->
+                        <div class="alert alert-primary mt-3" id="advanced-help" style="display: none;">
+                            <h6><i class="fas fa-cogs me-2"></i>Advanced Mode Features:</h6>
+                            <ul class="mb-0">
+                                <li><strong>Custom Settings:</strong> Adjust detection thresholds in Settings</li>
+                                <li><strong>Method Details:</strong> See which specific methods flagged each row</li>
+                                <li><strong>Fine-tuning:</strong> Optimize parameters for your specific data type</li>
+                                <li><strong>Technical Details:</strong> Access detailed statistics and method comparisons</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg" id="upload-btn">
+                            <i class="fas fa-search me-2"></i>
+                            Analyze for Poisoned Data
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-brain fa-2x text-primary"></i>
+                    </div>
+                    <h5>Multiple Detection Methods</h5>
+                    <p class="text-muted">Z-Score, IQR, Isolation Forest, and One-Class SVM algorithms</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-server fa-2x text-success"></i>
+                    </div>
+                    <h5>Distributed Processing</h5>
+                    <p class="text-muted">Simulates distributed servers for robust analysis</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-chart-bar fa-2x text-info"></i>
+                    </div>
+                    <h5>Visual Analytics</h5>
+                    <p class="text-muted">Interactive charts and detailed reports</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Uploads -->
+        {% if recent_uploads %}
+        <div class="mt-5">
+            <h4 class="mb-3">
+                <i class="fas fa-history me-2"></i>
+                Recent Uploads
+            </h4>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Filename</th>
+                            <th>Upload Date</th>
+                            <th>Status</th>
+                            <th>Results</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for upload in recent_uploads %}
+                        <tr>
+                            <td>
+                                <i class="fas fa-file-csv me-2 text-primary"></i>
+                                {{ upload.get_clean_filename }}
+                            </td>
+                            <td>{{ upload.uploaded_at|date:"M d, Y H:i" }}</td>
+                            <td>
+                                {% if upload.is_processed %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check me-1"></i>Processed
+                                    </span>
+                                {% elif upload.processing_error %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Error
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-clock me-1"></i>Processing
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if upload.is_processed %}
+                                    <span class="text-success">{{ upload.flagged_rows }} flagged</span>
+                                    <span class="text-muted">/ {{ upload.total_rows }} total</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if upload.is_processed %}
+                                    <a href="{% url 'results' upload.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye me-1"></i>View
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center mt-3">
+                <a href="{% url 'upload_history' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-history me-2"></i>
+                    View All Uploads
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('upload-form');
+    const uploadBtn = document.getElementById('upload-btn');
+    
+    // Mode switching
+    const basicMode = document.getElementById('basic-mode');
+    const advancedMode = document.getElementById('advanced-mode');
+    const basicHelp = document.getElementById('basic-help');
+    const advancedHelp = document.getElementById('advanced-help');
+    const modeDescription = document.getElementById('mode-description');
+    
+    function updateMode() {
+        if (basicMode.checked) {
+            basicHelp.style.display = 'block';
+            advancedHelp.style.display = 'none';
+            modeDescription.textContent = 'Basic Mode: Just upload your file and get results with helpful explanations.';
+        } else {
+            basicHelp.style.display = 'none';
+            advancedHelp.style.display = 'block';
+            modeDescription.textContent = 'Advanced Mode: Full control over detection parameters and detailed technical information.';
+        }
+    }
+    
+    basicMode.addEventListener('change', updateMode);
+    advancedMode.addEventListener('change', updateMode);
+    
+    // Initialize mode
+    updateMode();
+    
+    form.addEventListener('submit', function() {
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        uploadBtn.disabled = true;
+    });
+    
+    // File input change handler
+    const fileInput = document.getElementById('csv-file-input');
+    fileInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const fileSize = (file.size / (1024 * 1024)).toFixed(2);
+            console.log(`Selected file: ${file.name} (${fileSize} MB)`);
+            
+            // Show file type icon
+            const fileExtension = file.name.toLowerCase().split('.').pop();
+            let iconClass = 'fas fa-file';
+            if (fileExtension === 'csv') {
+                iconClass = 'fas fa-file-csv text-primary';
+            } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+                iconClass = 'fas fa-file-excel text-success';
+            }
+            
+            // Update file input display
+            const fileLabel = document.querySelector('label[for="' + fileInput.id + '"]');
+            if (fileLabel) {
+                const icon = fileLabel.querySelector('i');
+                if (icon) {
+                    icon.className = iconClass + ' me-2';
+                }
+            }
+        }
+    });
+    
+    // Add tooltips for better user experience
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %} 

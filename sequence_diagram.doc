@@ -1,0 +1,75 @@
+# Sequence Diagram - Anomashield File Upload and Detection Process
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Browser
+    participant Django_View
+    participant CSVUpload_Model
+    participant Detection_Engine
+    participant Config
+    participant Database
+    participant File_System
+
+    User->>Browser: Access home page
+    Browser->>Django_View: GET /home/
+    Django_View->>Browser: Render home.html with upload form
+    
+    User->>Browser: Select CSV file and submit
+    Browser->>Django_View: POST /home/ with file
+    Django_View->>CSVUpload_Model: Create new CSVUpload instance
+    CSVUpload_Model->>File_System: Save uploaded file
+    CSVUpload_Model->>Database: Save upload record
+    
+    Django_View->>Detection_Engine: process_csv_file(csv_upload)
+    
+    Detection_Engine->>File_System: Read uploaded file
+    Detection_Engine->>Detection_Engine: Load data (CSV/Excel)
+    Detection_Engine->>Detection_Engine: Split data into chunks
+    
+    loop For each chunk
+        Detection_Engine->>Detection_Engine: detect_numeric_columns()
+        Detection_Engine->>Detection_Engine: z_score_detection()
+        Detection_Engine->>Detection_Engine: iqr_detection()
+        Detection_Engine->>Detection_Engine: isolation_forest_detection()
+        Detection_Engine->>Detection_Engine: one_class_svm_detection()
+        Detection_Engine->>Detection_Engine: Apply consensus threshold
+    end
+    
+    Detection_Engine->>Detection_Engine: Aggregate results from all chunks
+    Detection_Engine->>Detection_Engine: Create detailed row results
+    
+    Detection_Engine->>CSVUpload_Model: Update detection statistics
+    CSVUpload_Model->>Database: Save updated statistics
+    
+    Detection_Engine->>Database: Save DetectionResult records
+    
+    Detection_Engine-->>Django_View: Return detection results
+    
+    Django_View->>Browser: Redirect to results page
+    Browser->>Django_View: GET /results/{upload_id}/
+    Django_View->>Database: Query detection results
+    Database-->>Django_View: Return results data
+    Django_View->>Browser: Render results.html with charts
+    
+    User->>Browser: View detection results and charts
+    User->>Browser: Optionally download clean data
+    Browser->>Django_View: GET /download/{upload_id}/
+    Django_View->>Database: Query clean rows
+    Database-->>Django_View: Return clean data
+    Django_View->>Browser: Return CSV file
+```
+
+## Key Process Flow:
+
+1. **File Upload**: User uploads CSV/Excel file through web interface
+2. **File Processing**: Django saves file and creates database record
+3. **Detection Engine**: Processes file using multiple anomaly detection methods
+4. **Chunked Processing**: Data is split into chunks for distributed processing
+5. **Multi-Method Detection**: Z-Score, IQR, Isolation Forest, and One-Class SVM are applied
+6. **Consensus Building**: Results from multiple methods are combined using consensus threshold
+7. **Result Storage**: Detailed results are saved to database
+8. **Results Display**: User can view results with interactive charts
+9. **Data Export**: User can download cleaned dataset
+
+Anomashield implements a robust, multi-layered approach to data poison detection with configurable parameters and comprehensive result tracking.

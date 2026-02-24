@@ -1,0 +1,129 @@
+# Activity Diagram - Anomashield Overall System Workflow
+
+```mermaid
+flowchart TD
+    Start([User starts application]) --> Login{User authenticated?}
+    
+    Login -->|No| LoginPage[Show login page]
+    LoginPage --> LoginForm[User enters credentials]
+    LoginForm --> AuthCheck{Authentication successful?}
+    AuthCheck -->|No| LoginError[Show error message]
+    LoginError --> LoginPage
+    AuthCheck -->|Yes| HomePage[Show home page]
+    
+    Login -->|Yes| HomePage
+    
+    HomePage --> UploadForm[Display file upload form]
+    UploadForm --> FileSelect[User selects CSV/Excel file]
+    FileSelect --> FileValidation{File valid?}
+    
+    FileValidation -->|No| ValidationError[Show validation error]
+    ValidationError --> UploadForm
+    
+    FileValidation -->|Yes| SaveFile[Save file to filesystem]
+    SaveFile --> CreateRecord[Create CSVUpload database record]
+    CreateRecord --> StartProcessing[Initialize detection process]
+    
+    StartProcessing --> LoadData[Load data from file]
+    LoadData --> DetectNumeric[Detect numeric columns]
+    DetectNumeric --> SplitChunks[Split data into chunks]
+    
+    SplitChunks --> ProcessChunk[Process each chunk]
+    
+    ProcessChunk --> ZScore[Apply Z-Score detection]
+    ZScore --> IQR[Apply IQR detection]
+    IQR --> IsolationForest[Apply Isolation Forest detection]
+    IsolationForest --> OneClassSVM[Apply One-Class SVM detection]
+    OneClassSVM --> Consensus[Apply consensus threshold]
+    
+    Consensus --> AggregateResults[Aggregate results from all chunks]
+    AggregateResults --> UpdateStats[Update detection statistics]
+    UpdateStats --> SaveResults[Save detailed row results]
+    SaveResults --> MarkProcessed[Mark upload as processed]
+    
+    MarkProcessed --> ShowResults[Redirect to results page]
+    ShowResults --> DisplayCharts[Display detection results with charts]
+    
+    DisplayCharts --> UserAction{User action?}
+    
+    UserAction -->|View Details| ShowDetails[Show detailed row analysis]
+    UserAction -->|Download Clean| DownloadClean[Generate clean dataset]
+    UserAction -->|View History| ShowHistory[Show upload history]
+    UserAction -->|Configure Settings| ShowSettings[Show configuration page]
+    UserAction -->|Upload Another| UploadForm
+    
+    ShowDetails --> UserAction
+    DownloadClean --> UserAction
+    ShowHistory --> UserAction
+    
+    ShowSettings --> ConfigForm[Display configuration form]
+    ConfigForm --> ConfigSubmit[User submits configuration]
+    ConfigSubmit --> ValidateConfig{Configuration valid?}
+    ValidateConfig -->|No| ConfigError[Show validation errors]
+    ConfigError --> ConfigForm
+    ValidateConfig -->|Yes| SaveConfig[Save configuration]
+    SaveConfig --> ConfigSuccess[Show success message]
+    ConfigSuccess --> HomePage
+    
+    %% Error handling paths
+    LoadData -->|Error| ProcessingError[Log processing error]
+    ProcessChunk -->|Error| ProcessingError
+    AggregateResults -->|Error| ProcessingError
+    SaveResults -->|Error| ProcessingError
+    
+    ProcessingError --> MarkFailed[Mark upload as failed]
+    MarkFailed --> ShowError[Show error message to user]
+    ShowError --> HomePage
+    
+    %% Parallel processing indication
+    ProcessChunk -.->|Parallel| ProcessChunk2[Process chunk 2]
+    ProcessChunk -.->|Parallel| ProcessChunk3[Process chunk 3]
+    ProcessChunk2 -.-> Consensus
+    ProcessChunk3 -.-> Consensus
+    
+    %% End states
+    UserAction -->|Logout| End([User logs out])
+    ShowError --> End
+```
+
+## Key Activities and Decision Points:
+
+### Authentication Flow:
+- User authentication check
+- Login form handling
+- Credential validation
+
+### File Upload Flow:
+- File selection and validation
+- File system storage
+- Database record creation
+
+### Detection Processing:
+- Data loading and preprocessing
+- Numeric column detection
+- Chunked processing for scalability
+- Multi-method anomaly detection:
+  - Z-Score statistical method
+  - IQR (Interquartile Range) method
+  - Isolation Forest ML method
+  - One-Class SVM ML method
+- Consensus-based result aggregation
+
+### Results Management:
+- Statistics calculation and storage
+- Detailed row-level result storage
+- Interactive results display
+- Clean data export functionality
+
+### Configuration Management:
+- Settings form display
+- Parameter validation
+- Configuration persistence
+
+### Error Handling:
+- File validation errors
+- Processing errors
+- Database errors
+- User notification system
+
+The activity diagram shows the complete user journey through Anomashield, including all major workflows, decision points, and error handling paths. The system supports parallel processing of data chunks and provides comprehensive error handling throughout the workflow.

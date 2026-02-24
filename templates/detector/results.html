@@ -1,0 +1,613 @@
+{% extends 'base.html' %}
+
+{% block title %}Results - {{ csv_upload.get_clean_filename }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1">
+                    <i class="fas fa-chart-line me-2 text-primary"></i>
+                    Detection Results
+                </h2>
+                <p class="text-muted mb-0">
+                    <i class="fas fa-file-csv me-1"></i>
+                    {{ csv_upload.get_clean_filename }}
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'download_clean_data' csv_upload.id %}" class="btn btn-success">
+                    <i class="fas fa-download me-2"></i>
+                    Download Clean Data
+                </a>
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary ms-2">
+                    <i class="fas fa-upload me-2"></i>
+                    Upload New File
+                </a>
+            </div>
+        </div>
+
+        <!-- Mode Toggle -->
+        <div class="row mb-4" id="view-mode-toggle">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="fas fa-eye me-2"></i>
+                                View Mode
+                            </h6>
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="view-mode" id="basic-view" value="basic" checked>
+                                <label class="btn btn-outline-success" for="basic-view">
+                                    <i class="fas fa-user me-1"></i>Basic
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="view-mode" id="advanced-view" value="advanced">
+                                <label class="btn btn-outline-primary" for="advanced-view">
+                                    <i class="fas fa-cogs me-1"></i>Advanced
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row mb-4" id="summary-cards">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-list fa-2x mb-2"></i>
+                        <h4>{{ csv_upload.total_rows }}</h4>
+                        <p class="mb-0">Total Rows</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-danger text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <h4>{{ csv_upload.flagged_rows }}</h4>
+                        <p class="mb-0">Flagged Rows</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-check-circle fa-2x mb-2"></i>
+                        <h4>{{ csv_upload.clean_rows }}</h4>
+                        <p class="mb-0">Clean Rows</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-percentage fa-2x mb-2"></i>
+                        <h4>{{ csv_upload.detection_rate|floatformat:1 }}%</h4>
+                        <p class="mb-0">Detection Rate</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Basic Mode Explanation -->
+        <div class="alert alert-info" id="basic-explanation">
+            <h6><i class="fas fa-lightbulb me-2"></i>What do these results mean?</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Flagged Rows:</strong> These are rows that our system thinks might contain unusual or problematic data. They could be outliers, errors, or data that doesn't fit the normal pattern.</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Clean Rows:</strong> These are rows that appear to contain normal, expected data that follows the typical patterns in your dataset.</p>
+                </div>
+            </div>
+            <p class="mb-0"><strong>Next Steps:</strong> Review the flagged rows below to see if they should be removed or corrected. You can download a clean version of your data using the "Download Clean Data" button.</p>
+        </div>
+
+        <!-- Advanced Mode Explanation -->
+        <div class="alert alert-primary" id="advanced-explanation" style="display: none;">
+            <h6><i class="fas fa-cogs me-2"></i>Advanced Mode - Technical Details</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Detection Methods:</strong> The system uses 4 different algorithms (Z-Score, IQR, Isolation Forest, One-Class SVM) to identify anomalies. Each method has different strengths and may flag different rows.</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Method Comparison:</strong> Review the detailed breakdown below to see which specific methods flagged each row. This helps you understand the confidence level and consensus among methods.</p>
+                </div>
+            </div>
+            <p class="mb-0"><strong>Technical Analysis:</strong> Use the method details section and additional charts to analyze detection patterns, method agreement, and fine-tune your detection parameters in Settings if needed.</p>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row mb-4" id="charts-row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-pie me-2"></i>
+                            Overall Results
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="overallChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Method Comparison
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="methodChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Method Details -->
+        <div class="row mb-4" id="method-details-section">
+            <div class="col-12">
+                <div class="card" id="method-details-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cogs me-2"></i>
+                            Detection Method Details
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="text-center p-3 border rounded">
+                                    <h6 class="text-primary">Z-Score</h6>
+                                    <h4 class="text-primary">{{ csv_upload.z_score_flagged }}</h4>
+                                    <small class="text-muted">Flagged Rows</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center p-3 border rounded">
+                                    <h6 class="text-info">IQR</h6>
+                                    <h4 class="text-info">{{ csv_upload.iqr_flagged }}</h4>
+                                    <small class="text-muted">Flagged Rows</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center p-3 border rounded">
+                                    <h6 class="text-warning">Isolation Forest</h6>
+                                    <h4 class="text-warning">{{ csv_upload.isolation_forest_flagged }}</h4>
+                                    <small class="text-muted">Flagged Rows</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center p-3 border rounded">
+                                    <h6 class="text-success">One-Class SVM</h6>
+                                    <h4 class="text-success">{{ csv_upload.one_class_svm_flagged }}</h4>
+                                    <small class="text-muted">Flagged Rows</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Tabs -->
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="resultsTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="flagged-tab" data-bs-toggle="tab" data-bs-target="#flagged" type="button" role="tab">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Flagged Rows ({{ total_flagged }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="clean-tab" data-bs-toggle="tab" data-bs-target="#clean" type="button" role="tab">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Clean Rows ({{ total_clean }})
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="resultsTabContent">
+                    <!-- Flagged Rows Tab -->
+                    <div class="tab-pane fade show active" id="flagged" role="tabpanel">
+                        {% if flagged_results %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Row Index</th>
+                                        <th>Detection Methods</th>
+                                        <th>Data</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in flagged_results %}
+                                    <tr class="table-danger">
+                                        <td>
+                                            <strong>{{ result.row_index }}</strong>
+                                        </td>
+                                        <td>
+                                            {% if result.z_score_flag %}
+                                                <span class="badge bg-primary me-1">Z-Score</span>
+                                            {% endif %}
+                                            {% if result.iqr_flag %}
+                                                <span class="badge bg-info me-1">IQR</span>
+                                            {% endif %}
+                                            {% if result.isolation_forest_flag %}
+                                                <span class="badge bg-warning me-1">Isolation Forest</span>
+                                            {% endif %}
+                                            {% if result.one_class_svm_flag %}
+                                                <span class="badge bg-success me-1">One-Class SVM</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#row-{{ result.row_index }}">
+                                                <i class="fas fa-eye me-1"></i>View Data
+                                            </button>
+                                            <div class="collapse mt-2" id="row-{{ result.row_index }}">
+                                                <div class="card card-body">
+                                                    <pre class="mb-0"><code>{{ result.row_data|pprint }}</code></pre>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h5 class="text-success">No Flagged Rows Found!</h5>
+                            <p class="text-muted">All rows in your dataset appear to be clean.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Clean Rows Tab -->
+                    <div class="tab-pane fade" id="clean" role="tabpanel">
+                        {% if clean_results %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Row Index</th>
+                                        <th>Data</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in clean_results %}
+                                    <tr class="table-success">
+                                        <td>
+                                            <strong>{{ result.row_index }}</strong>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#clean-row-{{ result.row_index }}">
+                                                <i class="fas fa-eye me-1"></i>View Data
+                                            </button>
+                                            <div class="collapse mt-2" id="clean-row-{{ result.row_index }}">
+                                                <div class="card card-body">
+                                                    <pre class="mb-0"><code>{{ result.row_data|pprint }}</code></pre>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                            <h5 class="text-danger">All Rows Flagged!</h5>
+                            <p class="text-muted">All rows in your dataset were flagged as potentially poisoned.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="application/json" id="chart-data-json">{{ chart_data|safe }}</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Chart data from embedded JSON script tag
+    let chartData = { method_comparison: { labels: [], datasets: [{ data: [], backgroundColor: [], borderColor: [], borderWidth: 1, label: '' }] }, overall_results: { labels: [], datasets: [{ data: [], backgroundColor: [], borderColor: [], borderWidth: 1 }] } };
+    try {
+        const el = document.getElementById('chart-data-json');
+        if (el && el.textContent) {
+            chartData = JSON.parse(el.textContent);
+        }
+    } catch (e) {
+        console.error('Failed to parse chart data JSON:', e);
+    }
+    
+    console.log('Chart data received:', chartData);
+    
+    // View mode switching
+    const basicView = document.getElementById('basic-view');
+    const advancedView = document.getElementById('advanced-view');
+    const basicExplanation = document.getElementById('basic-explanation');
+    const advancedExplanation = document.getElementById('advanced-explanation');
+    const methodDetails = document.getElementById('method-details-card')?.parentElement;
+    
+    // Store references to advanced charts for toggling
+    let distributionChartContainer = null;
+    let summaryChartContainer = null;
+    
+    function updateViewMode() {
+        const isBasic = basicView.checked;
+        
+        if (isBasic) {
+            // Basic Mode: Show simple explanation, hide technical details
+            if (basicExplanation) {
+                basicExplanation.style.display = 'block';
+            }
+            if (advancedExplanation) {
+                advancedExplanation.style.display = 'none';
+            }
+            if (methodDetails) {
+                methodDetails.style.display = 'none';
+            }
+            // Hide advanced charts if they exist
+            if (distributionChartContainer) {
+                distributionChartContainer.style.display = 'none';
+            }
+            if (summaryChartContainer) {
+                summaryChartContainer.style.display = 'none';
+            }
+        } else {
+            // Advanced Mode: Hide simple explanation, show technical details
+            if (basicExplanation) {
+                basicExplanation.style.display = 'none';
+            }
+            if (advancedExplanation) {
+                advancedExplanation.style.display = 'block';
+            }
+            if (methodDetails) {
+                methodDetails.style.display = 'block';
+            }
+            // Show advanced charts if they exist
+            if (distributionChartContainer) {
+                distributionChartContainer.style.display = 'block';
+            }
+            if (summaryChartContainer) {
+                summaryChartContainer.style.display = 'block';
+            }
+        }
+    }
+    
+    basicView.addEventListener('change', updateViewMode);
+    advancedView.addEventListener('change', updateViewMode);
+    
+    // Initialize view mode
+    updateViewMode();
+    
+    // Overall Results Pie Chart
+    const overallCtx = document.getElementById('overallChart').getContext('2d');
+    const overallChart = new Chart(overallCtx, {
+        type: 'pie',
+        data: {
+            labels: chartData.overall_results.labels,
+            datasets: [{
+                data: chartData.overall_results.datasets[0].data,
+                backgroundColor: chartData.overall_results.datasets[0].backgroundColor,
+                borderColor: chartData.overall_results.datasets[0].borderColor,
+                borderWidth: chartData.overall_results.datasets[0].borderWidth
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Method Comparison Bar Chart
+    const methodCtx = document.getElementById('methodChart').getContext('2d');
+    const methodChart = new Chart(methodCtx, {
+        type: 'bar',
+        data: {
+            labels: chartData.method_comparison.labels,
+            datasets: [{
+                label: chartData.method_comparison.datasets[0].label,
+                data: chartData.method_comparison.datasets[0].data,
+                backgroundColor: chartData.method_comparison.datasets[0].backgroundColor,
+                borderColor: chartData.method_comparison.datasets[0].borderColor,
+                borderWidth: chartData.method_comparison.datasets[0].borderWidth
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 0
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.y} rows flagged`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Add additional visualizations (only in advanced mode)
+    createDistributionChart(chartData);
+    createDetectionSummaryChart(chartData);
+    
+    // Store references to advanced chart containers after creation
+    setTimeout(function() {
+        distributionChartContainer = document.getElementById('distribution-chart-container');
+        summaryChartContainer = document.getElementById('summary-chart-container');
+        // Update view mode after charts are created
+        updateViewMode();
+    }, 100);
+});
+
+    // Additional chart for data distribution
+function createDistributionChart(chartData) {
+    const overall = chartData.overall_results;
+    const dataArr = overall && overall.datasets && overall.datasets[0] ? overall.datasets[0].data : [0, 0];
+    const cleanCount = dataArr[0] || 0;
+    const flaggedCount = dataArr[1] || 0;
+    
+    // Create a simple distribution visualization
+    const distributionContainer = document.createElement('div');
+    distributionContainer.className = 'col-md-6 mt-3';
+    distributionContainer.id = 'distribution-chart-container';
+    distributionContainer.innerHTML = `
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-area me-2"></i>
+                    Data Distribution (Advanced)
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="distributionChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    `;
+    
+    // Insert before the method details card
+    const methodDetailsCard = document.getElementById('method-details-card')?.parentElement;
+    if (methodDetailsCard) {
+        methodDetailsCard.parentElement.insertBefore(distributionContainer, methodDetailsCard);
+    }
+    
+    // Create the chart
+    const ctx = document.getElementById('distributionChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Clean Data', 'Flagged Data'],
+            datasets: [{
+                data: [cleanCount, flaggedCount],
+                backgroundColor: ['#28a745', '#dc3545'],
+                borderColor: ['#1e7e34', '#c82333'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+// Detection summary chart
+function createDetectionSummaryChart(chartData) {
+    const summaryContainer = document.createElement('div');
+    summaryContainer.className = 'col-md-6 mt-3';
+    summaryContainer.id = 'summary-chart-container';
+    summaryContainer.innerHTML = `
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Detection Summary (Advanced)
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="summaryChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    `;
+    
+    // Insert after the distribution chart
+    const distributionCard = document.getElementById('distributionChart')?.closest('.col-md-6');
+    if (distributionCard) {
+        distributionCard.parentElement.insertBefore(summaryContainer, distributionCard.nextSibling);
+    }
+    
+    // Create the chart
+    const ctx = document.getElementById('summaryChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: chartData.method_comparison.labels,
+            datasets: [{
+                label: 'Flagged Rows',
+                data: chartData.method_comparison.datasets[0].data,
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %} 

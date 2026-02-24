@@ -1,0 +1,619 @@
+# UML Deployment Diagram - Data Poison Detection System
+
+## System Details
+**Data Poison Detection System**
+
+A Django-based web application for detecting poisoned/outlier data in CSV files. The system can be deployed in development (single server) or production (multi-tier) environments. Supports local file storage and can be extended to cloud storage.
+
+---
+
+## Nodes
+
+### **Development Environment**
+
+#### **1. Developer Machine**
+- **Type**: Device Node
+- **Description**: Developer's local computer
+- **Technology**: Windows/Linux/Mac
+
+#### **2. Development Server**
+- **Type**: Execution Environment Node
+- **Description**: Local Django development server
+- **Technology**: Django Development Server (runserver)
+
+---
+
+### **Production Environment**
+
+#### **3. Web Server Node**
+- **Type**: Execution Environment Node
+- **Description**: Web server hosting the Django application
+- **Technology**: Gunicorn/uWSGI + Nginx
+- **Operating System**: Linux (Ubuntu/CentOS)
+
+#### **4. Database Server Node**
+- **Type**: Execution Environment Node
+- **Description**: Database server
+- **Technology**: PostgreSQL/MySQL (or SQLite for small deployments)
+- **Operating System**: Linux
+
+#### **5. File Storage Node**
+- **Type**: Execution Environment Node
+- **Description**: File storage for uploaded CSV files
+- **Technology**: Local File System / AWS S3 / Azure Blob Storage
+- **Operating System**: Linux / Cloud Storage
+
+#### **6. Client Device**
+- **Type**: Device Node
+- **Description**: User's web browser on desktop/laptop/tablet
+- **Technology**: Web Browser (Chrome, Firefox, Safari, Edge)
+- **Operating System**: Windows, macOS, Linux, iOS, Android
+
+---
+
+### **Cloud Environment (Optional)**
+
+#### **7. Cloud Application Server**
+- **Type**: Execution Environment Node
+- **Description**: Cloud-hosted application server
+- **Technology**: AWS EC2, Azure VM, Google Cloud Compute
+- **Operating System**: Linux
+
+#### **8. Cloud Database Service**
+- **Type**: Execution Environment Node
+- **Description**: Managed database service
+- **Technology**: AWS RDS, Azure Database, Google Cloud SQL
+- **Operating System**: Managed Service
+
+#### **9. Cloud Storage Service**
+- **Type**: Execution Environment Node
+- **Description**: Cloud object storage
+- **Technology**: AWS S3, Azure Blob Storage, Google Cloud Storage
+- **Operating System**: Managed Service
+
+#### **10. Load Balancer**
+- **Type**: Execution Environment Node
+- **Description**: Distributes traffic across multiple servers
+- **Technology**: AWS ELB, Azure Load Balancer, Nginx
+- **Operating System**: Managed Service / Linux
+
+---
+
+## Artifacts Deployed on Each Node
+
+### **Developer Machine**
+
+1. **Python Runtime**
+   - Python 3.8+
+   - Virtual Environment (venv)
+
+2. **Development Tools**
+   - Code Editor (VS Code, PyCharm)
+   - Git Client
+   - Terminal/Command Line
+
+3. **Project Files**
+   - Source Code
+   - Configuration Files
+   - Requirements.txt
+
+---
+
+### **Development Server**
+
+1. **Django Application**
+   - `manage.py` - Django management script
+   - `poison_detection/` - Project settings
+   - `detector/` - Main application code
+   - `templates/` - HTML templates
+   - `static/` - CSS, JavaScript files
+
+2. **Python Dependencies**
+   - Django 5.2.4
+   - pandas
+   - numpy
+   - scikit-learn
+   - scipy
+   - matplotlib
+   - seaborn
+
+3. **Configuration Files**
+   - `detector_config.json` - Detection parameters
+   - `settings.py` - Django settings
+   - `.env` - Environment variables
+
+4. **Database File**
+   - `db.sqlite3` - SQLite database (development)
+
+5. **Media Files**
+   - `media/csv_files/` - Uploaded CSV files
+
+---
+
+### **Web Server Node (Production)**
+
+1. **Web Server Process**
+   - Gunicorn/uWSGI - WSGI application server
+   - Multiple worker processes
+
+2. **Django Application**
+   - `manage.py`
+   - `poison_detection/` - Project package
+   - `detector/` - Application package
+   - `templates/` - HTML templates
+   - `static/` - Static files (CSS, JS)
+
+3. **Python Runtime**
+   - Python 3.8+
+   - Virtual Environment
+   - All Python dependencies
+
+4. **Reverse Proxy**
+   - Nginx - HTTP server and reverse proxy
+   - SSL/TLS certificates
+   - Static file serving
+
+5. **Configuration Files**
+   - `gunicorn.conf.py` - Gunicorn configuration
+   - `nginx.conf` - Nginx configuration
+   - `detector_config.json` - Application config
+   - `settings.py` - Django settings
+
+6. **Log Files**
+   - Application logs
+   - Access logs
+   - Error logs
+
+---
+
+### **Database Server Node**
+
+1. **Database Server**
+   - PostgreSQL 12+ / MySQL 8+ / SQLite
+   - Database engine process
+
+2. **Database Files**
+   - Database data files
+   - Transaction logs
+   - Backup files
+
+3. **Database Schema**
+   - `detector_csvupload` table
+   - `detector_detectionresult` table
+   - `auth_user` table
+   - Other Django tables
+
+4. **Configuration**
+   - Database configuration files
+   - Connection settings
+
+---
+
+### **File Storage Node**
+
+1. **File System / Cloud Storage**
+   - `media/csv_files/` directory (local)
+   - OR Cloud storage bucket (S3, Azure Blob, etc.)
+
+2. **Uploaded Files**
+   - CSV files
+   - Excel files
+   - Temporary files
+
+3. **Storage Configuration**
+   - Storage backend settings
+   - Access credentials (if cloud)
+
+---
+
+### **Client Device**
+
+1. **Web Browser**
+   - Chrome, Firefox, Safari, Edge
+   - JavaScript enabled
+   - HTML5 support
+
+2. **Browser Cache**
+   - Static files (CSS, JS, images)
+   - Session data
+   - Cookies
+
+3. **No Application Artifacts**
+   - Pure web client
+   - No installation required
+
+---
+
+### **Cloud Application Server**
+
+1. **Same as Web Server Node**
+   - All artifacts from Web Server Node
+   - Plus cloud-specific configurations
+
+2. **Cloud Agent**
+   - Cloud monitoring agent
+   - Cloud logging agent
+
+---
+
+### **Cloud Database Service**
+
+1. **Managed Database**
+   - Database instance
+   - Automated backups
+   - High availability setup
+
+2. **Database Schema**
+   - Same as Database Server Node
+
+---
+
+### **Cloud Storage Service**
+
+1. **Storage Bucket**
+   - S3 bucket / Azure container / GCS bucket
+   - Uploaded files
+   - Access policies
+
+2. **Storage API**
+   - REST API endpoints
+   - SDK libraries
+
+---
+
+### **Load Balancer**
+
+1. **Load Balancer Software**
+   - Nginx / AWS ELB / Azure LB
+   - Health check configuration
+   - Routing rules
+
+2. **SSL Certificates**
+   - TLS/SSL certificates
+   - Certificate management
+
+---
+
+## Communication Paths
+
+### **Development Environment**
+
+```
+Developer Machine ←→ Development Server
+  Protocol: HTTP/HTTPS
+  Port: 8000 (default Django)
+  Purpose: Local development and testing
+```
+
+---
+
+### **Production Environment**
+
+#### **Path 1: Client to Web Server**
+```
+Client Device ←→ Load Balancer ←→ Web Server
+  Protocol: HTTP/HTTPS
+  Port: 80 (HTTP) / 443 (HTTPS)
+  Purpose: User requests and responses
+```
+
+#### **Path 2: Web Server to Database**
+```
+Web Server ←→ Database Server
+  Protocol: TCP/IP (PostgreSQL/MySQL) or File I/O (SQLite)
+  Port: 5432 (PostgreSQL) / 3306 (MySQL)
+  Purpose: Database queries and transactions
+```
+
+#### **Path 3: Web Server to File Storage**
+```
+Web Server ←→ File Storage Node
+  Protocol: File System I/O (local) or REST API (cloud)
+  Purpose: File upload, read, delete operations
+```
+
+#### **Path 4: Load Balancer to Multiple Web Servers**
+```
+Load Balancer ←→ Web Server 1
+Load Balancer ←→ Web Server 2
+Load Balancer ←→ Web Server N
+  Protocol: HTTP/HTTPS
+  Port: 8000-8010 (internal)
+  Purpose: Load distribution
+```
+
+---
+
+### **Cloud Environment**
+
+#### **Path 5: Client to Cloud**
+```
+Client Device ←→ Internet ←→ Load Balancer ←→ Cloud Application Server
+  Protocol: HTTPS
+  Port: 443
+  Purpose: Secure web access
+```
+
+#### **Path 6: Application to Cloud Database**
+```
+Cloud Application Server ←→ Cloud Database Service
+  Protocol: TCP/IP (encrypted)
+  Port: Managed service port
+  Purpose: Database operations
+```
+
+#### **Path 7: Application to Cloud Storage**
+```
+Cloud Application Server ←→ Cloud Storage Service
+  Protocol: REST API (HTTPS)
+  Port: 443
+  Purpose: File storage operations
+```
+
+---
+
+## Complete Deployment Diagram Structure
+
+### **Development Deployment**
+
+```
+┌──────────────────┐
+│ Developer Machine│
+│  - Python        │
+│  - Code Editor   │
+│  - Git           │
+└────────┬─────────┘
+         │ HTTP :8000
+         │
+┌────────▼─────────┐
+│ Development      │
+│ Server           │
+│  - Django App    │
+│  - SQLite DB     │
+│  - Media Files   │
+└──────────────────┘
+```
+
+---
+
+### **Production Deployment (Single Server)**
+
+```
+┌──────────────┐
+│Client Device │
+│  - Browser   │
+└──────┬───────┘
+       │ HTTPS :443
+       │
+┌──────▼──────────────────────────┐
+│      Web Server Node             │
+│  ┌────────────────────────────┐ │
+│  │  Nginx (Reverse Proxy)     │ │
+│  └──────────┬─────────────────┘ │
+│             │                    │
+│  ┌──────────▼─────────────────┐ │
+│  │  Gunicorn (WSGI Server)    │ │
+│  └──────────┬─────────────────┘ │
+│             │                    │
+│  ┌──────────▼─────────────────┐ │
+│  │  Django Application        │ │
+│  │  - detector/               │ │
+│  │  - templates/              │ │
+│  │  - static/                 │ │
+│  └────────────────────────────┘ │
+└──────┬──────────────┬───────────┘
+       │              │
+       │              │
+┌──────▼──────┐  ┌────▼──────────┐
+│  Database   │  │ File Storage  │
+│  Server     │  │ Node          │
+│  - SQLite/  │  │ - media/      │
+│    Postgres │  │   csv_files/  │
+└─────────────┘  └────────────────┘
+```
+
+---
+
+### **Production Deployment (Multi-Tier with Load Balancer)**
+
+```
+┌──────────────┐
+│Client Device │
+└──────┬───────┘
+       │ HTTPS :443
+       │
+┌──────▼──────────────┐
+│  Load Balancer      │
+│  - Nginx/ELB        │
+│  - SSL Certificates │
+└──────┬──────────────┘
+       │
+       ├──────────────┬──────────────┐
+       │              │              │
+┌──────▼──────┐  ┌────▼──────┐  ┌───▼──────┐
+│ Web Server 1│  │Web Server2│  │Web Server│
+│ - Gunicorn  │  │- Gunicorn │  │    N     │
+│ - Django    │  │- Django   │  │- Django  │
+└──────┬──────┘  └────┬──────┘  └────┬─────┘
+       │              │              │
+       └──────────────┼──────────────┘
+                      │
+         ┌────────────┼────────────┐
+         │            │            │
+    ┌────▼────┐  ┌────▼────┐  ┌───▼──────┐
+    │Database │  │File     │  │Config    │
+    │Server   │  │Storage  │  │Service   │
+    └─────────┘  └─────────┘  └──────────┘
+```
+
+---
+
+### **Cloud Deployment**
+
+```
+┌──────────────┐
+│Client Device │
+└──────┬───────┘
+       │ HTTPS :443
+       │ Internet
+       │
+┌──────▼──────────────┐
+│  Cloud Load         │
+│  Balancer           │
+│  (AWS ELB/Azure LB) │
+└──────┬──────────────┘
+       │
+┌──────▼──────────────────┐
+│  Cloud Application       │
+│  Server (EC2/VM)         │
+│  - Gunicorn              │
+│  - Django Application    │
+└──────┬───────────┬───────┘
+       │           │
+       │           │
+┌──────▼──────┐ ┌──▼────────────┐
+│  Cloud      │ │  Cloud        │
+│  Database   │ │  Storage      │
+│  (RDS/SQL)  │ │  (S3/Blob)    │
+└─────────────┘ └───────────────┘
+```
+
+---
+
+## Diagram-Friendly List Format
+
+### **Nodes (10 total)**
+
+1. **Developer Machine**
+   - Artifacts: Python, Code Editor, Git, Source Code
+   - Communication: HTTP to Development Server
+
+2. **Development Server**
+   - Artifacts: Django App, SQLite DB, Media Files, Config
+   - Communication: HTTP from Developer, File I/O to DB
+
+3. **Web Server Node**
+   - Artifacts: Nginx, Gunicorn, Django App, Python Runtime
+   - Communication: HTTPS from Client, TCP to Database, File I/O to Storage
+
+4. **Database Server Node**
+   - Artifacts: PostgreSQL/MySQL, Database Files, Schema
+   - Communication: TCP from Web Server
+
+5. **File Storage Node**
+   - Artifacts: File System / Cloud Bucket, Uploaded Files
+   - Communication: File I/O or REST API from Web Server
+
+6. **Client Device**
+   - Artifacts: Web Browser, Cache
+   - Communication: HTTPS to Web Server
+
+7. **Cloud Application Server**
+   - Artifacts: Same as Web Server + Cloud Agents
+   - Communication: HTTPS from Load Balancer, TCP to Cloud DB, REST to Cloud Storage
+
+8. **Cloud Database Service**
+   - Artifacts: Managed Database Instance, Schema
+   - Communication: TCP from Application Server
+
+9. **Cloud Storage Service**
+   - Artifacts: Storage Bucket, Files, API
+   - Communication: REST API from Application Server
+
+10. **Load Balancer**
+    - Artifacts: Load Balancer Software, SSL Certificates
+    - Communication: HTTPS from Client, HTTP to Web Servers
+
+---
+
+### **Communication Paths (7 main paths)**
+
+1. **Client ↔ Web Server**
+   - Protocol: HTTPS
+   - Port: 443
+   - Purpose: User requests/responses
+
+2. **Web Server ↔ Database**
+   - Protocol: TCP/IP (PostgreSQL/MySQL) or File I/O (SQLite)
+   - Port: 5432 (PostgreSQL) / 3306 (MySQL)
+   - Purpose: Database operations
+
+3. **Web Server ↔ File Storage**
+   - Protocol: File I/O (local) or REST API (cloud)
+   - Port: N/A (local) or 443 (cloud)
+   - Purpose: File operations
+
+4. **Load Balancer ↔ Web Servers**
+   - Protocol: HTTP/HTTPS
+   - Port: 8000-8010 (internal)
+   - Purpose: Load distribution
+
+5. **Client ↔ Cloud (via Internet)**
+   - Protocol: HTTPS
+   - Port: 443
+   - Purpose: Secure cloud access
+
+6. **Application ↔ Cloud Database**
+   - Protocol: TCP/IP (encrypted)
+   - Port: Managed service port
+   - Purpose: Database operations
+
+7. **Application ↔ Cloud Storage**
+   - Protocol: REST API (HTTPS)
+   - Port: 443
+   - Purpose: File storage operations
+
+---
+
+## Deployment Scenarios
+
+### **Scenario 1: Development**
+- **Nodes**: Developer Machine, Development Server
+- **Artifacts**: Django dev server, SQLite, local files
+- **Communication**: HTTP on localhost:8000
+
+### **Scenario 2: Production (Single Server)**
+- **Nodes**: Client, Web Server, Database Server, File Storage
+- **Artifacts**: Nginx, Gunicorn, Django, PostgreSQL, Local Storage
+- **Communication**: HTTPS (443), TCP (5432), File I/O
+
+### **Scenario 3: Production (Scalable)**
+- **Nodes**: Client, Load Balancer, Multiple Web Servers, Database, Storage
+- **Artifacts**: Load balancer, multiple app instances, shared database
+- **Communication**: HTTPS, TCP, File I/O, internal HTTP
+
+### **Scenario 4: Cloud Deployment**
+- **Nodes**: Client, Cloud Load Balancer, Cloud App Server, Cloud DB, Cloud Storage
+- **Artifacts**: Cloud-managed services
+- **Communication**: HTTPS, managed TCP, REST API
+
+---
+
+## Notes for Drawing
+
+1. **Node Notation**:
+   - **Device Node**: 3D box (Client Device, Developer Machine)
+   - **Execution Environment Node**: 3D box with <<executionEnvironment>> (Servers)
+   - **Artifact**: Rectangle with <<artifact>> stereotype
+
+2. **Communication Paths**:
+   - Draw as lines/arrows between nodes
+   - Label with protocol and port
+   - Use different line styles for different protocols
+
+3. **Artifacts**:
+   - Show inside nodes or connected with dependency arrows
+   - Can be nested (e.g., Django App contains multiple modules)
+
+4. **Stereotypes**:
+   - <<device>> for client devices
+   - <<executionEnvironment>> for servers
+   - <<artifact>> for deployed files/components
+
+5. **Deployment Specifications**:
+   - Can add deployment specs showing configuration details
+
+---
+
+This specification provides everything needed to draw a complete UML Deployment Diagram for the Data Poison Detection System in various deployment scenarios.
+

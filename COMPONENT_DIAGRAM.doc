@@ -1,0 +1,419 @@
+# UML Component Diagram - Data Poison Detection System
+
+## System Description
+**Data Poison Detection System**
+
+A web-based application that detects poisoned/outlier data in CSV and Excel files using multiple machine learning and statistical methods. The system consists of a web interface, detection engine, data management layer, and configuration management.
+
+---
+
+## Components
+
+### **1. Web Interface Component**
+- **Name**: `WebInterface`
+- **Description**: User-facing web application layer
+- **Responsibilities**:
+  - Handle HTTP requests/responses
+  - Render HTML templates
+  - Manage user sessions
+  - Display results and charts
+
+### **2. Authentication Component**
+- **Name**: `Authentication`
+- **Description**: User authentication and authorization
+- **Responsibilities**:
+  - User login/logout
+  - User registration
+  - Session management
+  - Access control
+
+### **3. File Upload Component**
+- **Name**: `FileUpload`
+- **Description**: File handling and validation
+- **Responsibilities**:
+  - File upload processing
+  - File validation (format, size)
+  - File storage management
+  - File metadata management
+
+### **4. Detection Engine Component**
+- **Name**: `DetectionEngine`
+- **Description**: Core anomaly detection logic
+- **Responsibilities**:
+  - Coordinate detection methods
+  - Process data chunks
+  - Apply consensus logic
+  - Aggregate results
+
+### **5. Detection Methods Component**
+- **Name**: `DetectionMethods`
+- **Description**: Individual detection algorithms
+- **Responsibilities**:
+  - Z-Score detection
+  - IQR detection
+  - Isolation Forest detection
+  - One-Class SVM detection
+
+### **6. Configuration Component**
+- **Name**: `Configuration`
+- **Description**: System configuration management
+- **Responsibilities**:
+  - Load/save configuration
+  - Parameter validation
+  - Adaptive parameter selection
+  - Default value management
+
+### **7. Data Access Component**
+- **Name**: `DataAccess`
+- **Description**: Database operations layer
+- **Responsibilities**:
+  - ORM operations
+  - Query execution
+  - Transaction management
+  - Data persistence
+
+### **8. Data Models Component**
+- **Name**: `DataModels`
+- **Description**: Database model definitions
+- **Responsibilities**:
+  - CSVUpload model
+  - DetectionResult model
+  - User model
+  - Model relationships
+
+### **9. Results Management Component**
+- **Name**: `ResultsManagement`
+- **Description**: Detection results processing
+- **Responsibilities**:
+  - Result aggregation
+  - Statistics calculation
+  - Chart data preparation
+  - Result storage
+
+### **10. Visualization Component**
+- **Name**: `Visualization`
+- **Description**: Data visualization and charts
+- **Responsibilities**:
+  - Chart rendering
+  - Data formatting
+  - Interactive visualizations
+  - Chart.js integration
+
+---
+
+## Interfaces
+
+### **Interface 1: IFileHandler**
+- **Provided By**: FileUpload Component
+- **Required By**: WebInterface Component
+- **Operations**:
+  - `uploadFile(file) → UploadResult`
+  - `validateFile(file) → ValidationResult`
+  - `saveFile(file) → FilePath`
+  - `deleteFile(fileId) → Boolean`
+
+### **Interface 2: IDetector**
+- **Provided By**: DetectionEngine Component
+- **Required By**: WebInterface Component
+- **Operations**:
+  - `detectPoisonedData(filePath, useLenientMode) → DetectionResult`
+  - `processChunk(chunk) → ChunkResult`
+  - `aggregateResults(chunkResults) → AggregatedResult`
+
+### **Interface 3: IConfiguration**
+- **Provided By**: Configuration Component
+- **Required By**: DetectionEngine Component, WebInterface Component
+- **Operations**:
+  - `get(key) → Value`
+  - `set(key, value) → Boolean`
+  - `update(updates) → Boolean`
+  - `getAdaptiveContamination(size) → Float`
+  - `getAdaptiveNu(size) → Float`
+
+### **Interface 4: IDataAccess**
+- **Provided By**: DataAccess Component
+- **Required By**: WebInterface Component, ResultsManagement Component
+- **Operations**:
+  - `createUpload(uploadData) → CSVUpload`
+  - `getUpload(id) → CSVUpload`
+  - `updateUpload(id, data) → Boolean`
+  - `deleteUpload(id) → Boolean`
+  - `saveResults(results) → Boolean`
+  - `getResults(uploadId) → List<DetectionResult>`
+
+### **Interface 5: IAuthentication**
+- **Provided By**: Authentication Component
+- **Required By**: WebInterface Component
+- **Operations**:
+  - `login(username, password) → User`
+  - `logout(user) → Boolean`
+  - `register(userData) → User`
+  - `isAuthenticated(request) → Boolean`
+
+### **Interface 6: IResultsProcessor**
+- **Provided By**: ResultsManagement Component
+- **Required By**: WebInterface Component
+- **Operations**:
+  - `calculateStatistics(results) → Statistics`
+  - `prepareChartData(results) → ChartData`
+  - `generateCleanDataset(results) → DataFrame`
+
+### **Interface 7: IDetectionMethod**
+- **Provided By**: DetectionMethods Component
+- **Required By**: DetectionEngine Component
+- **Operations**:
+  - `detect(data, columns) → FlaggedRows`
+  - `getMethodName() → String`
+
+---
+
+## Dependencies Between Components
+
+### **WebInterface Dependencies**
+```
+WebInterface → Authentication (uses IAuthentication)
+WebInterface → FileUpload (uses IFileHandler)
+WebInterface → DetectionEngine (uses IDetector)
+WebInterface → Configuration (uses IConfiguration)
+WebInterface → DataAccess (uses IDataAccess)
+WebInterface → ResultsManagement (uses IResultsProcessor)
+WebInterface → Visualization (uses chart rendering)
+```
+
+### **DetectionEngine Dependencies**
+```
+DetectionEngine → DetectionMethods (uses IDetectionMethod)
+DetectionEngine → Configuration (uses IConfiguration)
+DetectionEngine → DataAccess (uses IDataAccess)
+```
+
+### **FileUpload Dependencies**
+```
+FileUpload → DataAccess (uses IDataAccess)
+FileUpload → Configuration (uses IConfiguration)
+```
+
+### **ResultsManagement Dependencies**
+```
+ResultsManagement → DataAccess (uses IDataAccess)
+ResultsManagement → DataModels (uses model definitions)
+```
+
+### **DataAccess Dependencies**
+```
+DataAccess → DataModels (uses model definitions)
+```
+
+### **Authentication Dependencies**
+```
+Authentication → DataAccess (uses IDataAccess)
+```
+
+### **Visualization Dependencies**
+```
+Visualization → ResultsManagement (uses IResultsProcessor)
+```
+
+---
+
+## Component Diagram Structure
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Web Interface Component                  │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
+│  │   Templates  │  │   Views      │  │  Static Files│    │
+│  └──────────────┘  └──────────────┘  └──────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+         │              │              │              │
+         │              │              │              │
+    ┌────▼────┐    ┌────▼────┐    ┌────▼────┐    ┌────▼────┐
+    │Auth     │    │File     │    │Detection│    │Results  │
+    │Component│    │Upload   │    │Engine   │    │Management│
+    └─────────┘    └─────────┘    └─────────┘    └─────────┘
+         │              │              │              │
+         │              │              │              │
+    ┌────▼────┐    ┌────▼────┐    ┌────▼────┐    ┌────▼────┐
+    │Data     │    │Config   │    │Detection│    │Visualiz.│
+    │Access   │    │Component│    │Methods  │    │Component│
+    └─────────┘    └─────────┘    └─────────┘    └─────────┘
+         │
+         │
+    ┌────▼────┐
+    │Data     │
+    │Models   │
+    └─────────┘
+```
+
+---
+
+## Diagram-Friendly List Format
+
+### **Components (10 total)**
+
+1. **WebInterface**
+   - Templates, Views, Static Files
+   - Depends on: Authentication, FileUpload, DetectionEngine, Configuration, DataAccess, ResultsManagement, Visualization
+
+2. **Authentication**
+   - Login, Logout, Registration, Session Management
+   - Depends on: DataAccess
+
+3. **FileUpload**
+   - File Validation, Storage, Metadata
+   - Depends on: DataAccess, Configuration
+
+4. **DetectionEngine**
+   - Detection Orchestration, Chunk Processing, Consensus
+   - Depends on: DetectionMethods, Configuration, DataAccess
+
+5. **DetectionMethods**
+   - Z-Score, IQR, Isolation Forest, One-Class SVM
+   - Depends on: None (standalone algorithms)
+
+6. **Configuration**
+   - Parameter Management, Validation, Adaptive Selection
+   - Depends on: None (file-based)
+
+7. **DataAccess**
+   - ORM Operations, Queries, Transactions
+   - Depends on: DataModels
+
+8. **DataModels**
+   - CSVUpload, DetectionResult, User Models
+   - Depends on: None (Django models)
+
+9. **ResultsManagement**
+   - Statistics, Chart Data, Clean Dataset Generation
+   - Depends on: DataAccess, DataModels
+
+10. **Visualization**
+    - Charts, Graphs, Interactive Visualizations
+    - Depends on: ResultsManagement
+
+---
+
+### **Interfaces (7 total)**
+
+1. **IFileHandler** (FileUpload → WebInterface)
+   - uploadFile(), validateFile(), saveFile(), deleteFile()
+
+2. **IDetector** (DetectionEngine → WebInterface)
+   - detectPoisonedData(), processChunk(), aggregateResults()
+
+3. **IConfiguration** (Configuration → DetectionEngine, WebInterface)
+   - get(), set(), update(), getAdaptiveContamination(), getAdaptiveNu()
+
+4. **IDataAccess** (DataAccess → WebInterface, ResultsManagement, Authentication)
+   - createUpload(), getUpload(), updateUpload(), deleteUpload(), saveResults(), getResults()
+
+5. **IAuthentication** (Authentication → WebInterface)
+   - login(), logout(), register(), isAuthenticated()
+
+6. **IResultsProcessor** (ResultsManagement → WebInterface)
+   - calculateStatistics(), prepareChartData(), generateCleanDataset()
+
+7. **IDetectionMethod** (DetectionMethods → DetectionEngine)
+   - detect(), getMethodName()
+
+---
+
+### **Dependencies (Simplified)**
+
+```
+WebInterface
+  ├─→ Authentication (IAuthentication)
+  ├─→ FileUpload (IFileHandler)
+  ├─→ DetectionEngine (IDetector)
+  ├─→ Configuration (IConfiguration)
+  ├─→ DataAccess (IDataAccess)
+  ├─→ ResultsManagement (IResultsProcessor)
+  └─→ Visualization
+
+Authentication
+  └─→ DataAccess (IDataAccess)
+
+FileUpload
+  ├─→ DataAccess (IDataAccess)
+  └─→ Configuration (IConfiguration)
+
+DetectionEngine
+  ├─→ DetectionMethods (IDetectionMethod)
+  ├─→ Configuration (IConfiguration)
+  └─→ DataAccess (IDataAccess)
+
+ResultsManagement
+  ├─→ DataAccess (IDataAccess)
+  └─→ DataModels
+
+DataAccess
+  └─→ DataModels
+
+Visualization
+  └─→ ResultsManagement (IResultsProcessor)
+```
+
+---
+
+## Component Relationships Summary
+
+### **Top-Level Component**
+- **WebInterface** - Main entry point, depends on all other components
+
+### **Core Business Logic**
+- **DetectionEngine** - Orchestrates detection process
+- **DetectionMethods** - Provides detection algorithms
+- **ResultsManagement** - Processes and formats results
+
+### **Support Components**
+- **Authentication** - User management
+- **FileUpload** - File handling
+- **Configuration** - System settings
+- **Visualization** - Data presentation
+
+### **Data Layer**
+- **DataAccess** - Database operations
+- **DataModels** - Data structure definitions
+
+---
+
+## Notes for Drawing
+
+1. **Component Boxes**: Draw as rectangles with component name
+2. **Interfaces**: Draw as small circles (lollipop notation) or rectangles with <<interface>> stereotype
+3. **Dependencies**: Draw dashed arrows from dependent to provider
+4. **Interface Connections**: 
+   - Provided interface: Circle on provider side
+   - Required interface: Semicircle on dependent side
+   - Connect with solid line
+5. **Component Groups**: Can group related components (optional)
+6. **Ports**: Can show ports on components for interface connections (optional)
+
+---
+
+## Simplified Version (High-Level)
+
+For a simpler diagram:
+
+### **Components (5 main)**
+1. **WebInterface** - User interface layer
+2. **BusinessLogic** - Detection engine and methods
+3. **DataLayer** - Data access and models
+4. **Configuration** - System configuration
+5. **Visualization** - Charts and graphs
+
+### **Dependencies**
+```
+WebInterface → BusinessLogic
+WebInterface → DataLayer
+WebInterface → Configuration
+WebInterface → Visualization
+BusinessLogic → DataLayer
+BusinessLogic → Configuration
+Visualization → BusinessLogic
+```
+
+---
+
+This specification provides everything needed to draw a complete UML Component Diagram for the Data Poison Detection System.
+

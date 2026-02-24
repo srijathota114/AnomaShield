@@ -1,0 +1,779 @@
+# Detailed Mermaid Diagrams for Anomashield
+
+## 1. Detailed Class Diagram with Internal Components
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '8px'}}}%%
+classDiagram
+    class User {
+        +id: Integer
+        +username: String
+        +email: String
+        +password: String
+        +is_authenticated: Boolean
+        +date_joined: DateTime
+        +last_login: DateTime
+        +uploadFile(file: File) CSVUpload
+        +viewResults(upload_id: Integer) List[DetectionResult]
+        +configureSettings(config: Dict) Boolean
+        +downloadCleanData(upload_id: Integer) File
+    }
+    
+    class CSVUpload {
+        +id: Integer
+        +file: FileField
+        +filename: String
+        +uploaded_at: DateTime
+        +file_size: Float
+        +total_rows: Integer
+        +flagged_rows: Integer
+        +clean_rows: Integer
+        +is_processed: Boolean
+        +processing_error: String
+        +z_score_flagged: Integer
+        +iqr_flagged: Integer
+        +isolation_forest_flagged: Integer
+        +one_class_svm_flagged: Integer
+        +detection_rate: Float
+        +get_file_size() Float
+        +get_clean_filename() String
+        +get_detection_summary() Dict
+    }
+    
+    class DataPoisonDetector {
+        -scaler: StandardScaler
+        -config: DetectionConfig
+        -logger: Logger
+        +__init__()
+        +detect_numeric_columns(df: DataFrame) List[str]
+        +split_data_into_chunks(df: DataFrame, num_chunks: Integer) List[DataFrame]
+        +z_score_detection(df: DataFrame, numeric_cols: List[str], threshold: Float) Dict[int, bool]
+        +iqr_detection(df: DataFrame, numeric_cols: List[str], multiplier: Float) Dict[int, bool]
+        +isolation_forest_detection(df: DataFrame, numeric_cols: List[str]) Dict[int, bool]
+        +one_class_svm_detection(df: DataFrame, numeric_cols: List[str]) Dict[int, bool]
+        +process_chunk(chunk: DataFrame, chunk_id: Integer) Dict[str, Any]
+        +detect_poisoned_data(file_path: String) Dict[str, Any]
+        +apply_consensus_threshold(method_results: Dict) Set[int]
+        +aggregate_results(chunk_results: List[Dict]) Dict[str, Any]
+    }
+    
+    class DetectionResult {
+        +id: Integer
+        +csv_upload: ForeignKey
+        +row_index: Integer
+        +is_flagged: Boolean
+        +z_score_flag: Boolean
+        +iqr_flag: Boolean
+        +isolation_forest_flag: Boolean
+        +one_class_svm_flag: Boolean
+        +row_data: JSONField
+        +confidence_score: Float
+        +detection_methods: List[str]
+        +anomaly_score: Float
+        +get_detection_summary() Dict
+        +get_flagged_methods() List[str]
+    }
+    
+    class DetectionConfig {
+        -config_file: String
+        -config: Dict[str, Any]
+        -DEFAULT_CONFIG: Dict[str, Any]
+        +__init__()
+        +load_config() Dict[str, Any]
+        +save_config(config: Dict[str, Any]) Boolean
+        +get(key: String, default: Any) Any
+        +set(key: String, value: Any) Boolean
+        +update(updates: Dict[str, Any]) Boolean
+        +reset_to_defaults() Boolean
+        +get_adaptive_contamination(dataset_size: Integer) Float
+        +get_adaptive_nu(dataset_size: Integer) Float
+        +validate_config() Dict[str, String]
+        +get_z_score_threshold() Float
+        +get_iqr_multiplier() Float
+        +get_consensus_threshold() Integer
+    }
+    
+    class DetectionConfigForm {
+        +z_score_threshold: FloatField
+        +iqr_multiplier: FloatField
+        +consensus_threshold: IntegerField
+        +distributed_chunks: IntegerField
+        +isolation_forest_small: FloatField
+        +isolation_forest_medium: FloatField
+        +isolation_forest_large: FloatField
+        +one_class_svm_small: FloatField
+        +one_class_svm_medium: FloatField
+        +one_class_svm_large: FloatField
+        +clean() Dict[str, Any]
+        +save_config() Boolean
+        +validate_form() Boolean
+    }
+    
+    class CSVUploadForm {
+        +file: FileField
+        +clean_file() FileField
+        +validate_file_size() Boolean
+        +validate_file_type() Boolean
+    }
+    
+    %% Relationships
+    User ||--o{ CSVUpload : uploads
+    CSVUpload ||--o{ DetectionResult : has_many
+    DataPoisonDetector --> DetectionConfig : uses
+    DetectionConfigForm --> DetectionConfig : configures
+    CSVUploadForm --> CSVUpload : creates
+    DataPoisonDetector --> CSVUpload : processes
+    DataPoisonDetector --> DetectionResult : generates
+```
+
+## 2. Detailed System Architecture with Microservices
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '8px'}}}%%
+graph TB
+    subgraph "Client Layer"
+        WEB[Web Browser]
+        MOBILE[Mobile App]
+        ADMIN[Admin Dashboard]
+    end
+    
+    subgraph "Load Balancer"
+        LB[NGINX Load Balancer]
+    end
+    
+    subgraph "API Gateway Layer"
+        GATEWAY[API Gateway]
+        AUTH[Authentication Service]
+        RATE[Rate Limiting]
+    end
+    
+    subgraph "Application Layer"
+        subgraph "Detection Services"
+            DET_MAIN[Main Detection Service]
+            DET_Z[Z-Score Service]
+            DET_IQR[IQR Service]
+            DET_IF[Isolation Forest Service]
+            DET_SVM[One-Class SVM Service]
+        end
+        
+        subgraph "Support Services"
+            FILE[File Processing Service]
+            CONFIG[Configuration Service]
+            NOTIFY[Notification Service]
+            AUDIT[Audit Service]
+        end
+    end
+    
+    subgraph "ML Pipeline"
+        TRAIN[Model Training]
+        INFER[Model Inference]
+        SERVING[Model Serving]
+        MONITOR[Model Monitoring]
+    end
+    
+    subgraph "Data Layer"
+        subgraph "Primary Database"
+            DB_MAIN[(PostgreSQL)]
+            DB_CACHE[(Redis Cache)]
+        end
+        
+        subgraph "File Storage"
+            FS_LOCAL[Local File System]
+            FS_S3[AWS S3]
+        end
+        
+        subgraph "Analytics"
+            DB_ANALYTICS[(Analytics DB)]
+            LOGS[Log Storage]
+        end
+    end
+    
+    subgraph "External Services"
+        EMAIL[Email Service]
+        SMS[SMS Service]
+        BACKUP[Backup Service]
+    end
+    
+    %% Connections
+    WEB --> LB
+    MOBILE --> LB
+    ADMIN --> LB
+    LB --> GATEWAY
+    GATEWAY --> AUTH
+    GATEWAY --> RATE
+    GATEWAY --> DET_MAIN
+    GATEWAY --> FILE
+    GATEWAY --> CONFIG
+    
+    DET_MAIN --> DET_Z
+    DET_MAIN --> DET_IQR
+    DET_MAIN --> DET_IF
+    DET_MAIN --> DET_SVM
+    
+    DET_MAIN --> TRAIN
+    TRAIN --> INFER
+    INFER --> SERVING
+    SERVING --> MONITOR
+    
+    DET_MAIN --> DB_MAIN
+    DET_MAIN --> DB_CACHE
+    FILE --> FS_LOCAL
+    FILE --> FS_S3
+    CONFIG --> DB_MAIN
+    
+    DET_MAIN --> NOTIFY
+    NOTIFY --> EMAIL
+    NOTIFY --> SMS
+    
+    AUDIT --> DB_ANALYTICS
+    AUDIT --> LOGS
+    
+    BACKUP --> FS_S3
+```
+
+## 3. Detailed Sequence Diagram with Error Handling
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '8px'}}}%%
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant A as API Gateway
+    participant AUTH as Auth Service
+    participant D as Detection Service
+    participant Z as Z-Score Service
+    participant I as IQR Service
+    participant IF as Isolation Forest Service
+    participant SVM as One-Class SVM Service
+    participant DB as Database
+    participant FS as File Storage
+    participant N as Notification Service
+    
+    U->>F: Login Request
+    F->>A: POST /login
+    A->>AUTH: Validate Credentials
+    AUTH-->>A: Return JWT Token
+    A-->>F: Login Success
+    F-->>U: Show Dashboard
+    
+    U->>F: Upload CSV File
+    F->>A: POST /upload (with JWT)
+    A->>AUTH: Validate Token
+    AUTH-->>A: Token Valid
+    A->>FS: Store File
+    FS-->>A: File Stored
+    A->>DB: Create Upload Record
+    DB-->>A: Record Created
+    A->>D: Process File (async)
+    A-->>F: Upload Accepted
+    F-->>U: Show Processing Status
+    
+    par Parallel Detection Methods
+        D->>Z: Run Z-Score Detection
+        Z-->>D: Z-Score Results
+    and
+        D->>I: Run IQR Detection
+        I-->>D: IQR Results
+    and
+        D->>IF: Run Isolation Forest
+        IF-->>D: IF Results
+    and
+        D->>SVM: Run One-Class SVM
+        SVM-->>D: SVM Results
+    end
+    
+    D->>D: Apply Consensus Threshold
+    D->>DB: Store Detection Results
+    DB-->>D: Results Stored
+    D->>N: Send Completion Notification
+    N-->>U: Email/SMS Notification
+    
+    U->>F: View Results
+    F->>A: GET /results/{id}
+    A->>DB: Query Results
+    DB-->>A: Return Results
+    A-->>F: Results Data
+    F-->>U: Display Charts & Analysis
+    
+    alt Error Scenarios
+        D->>D: Processing Error
+        D->>DB: Update Error Status
+        D->>N: Send Error Notification
+        N-->>U: Error Alert
+    end
+```
+
+## 4. Detailed State Diagram with Sub-states
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '8px'}}}%%
+stateDiagram-v2
+    [*] --> Idle
+    
+    state Idle {
+        [*] --> WaitingForInput
+        WaitingForInput --> ValidatingUser : User Action
+        ValidatingUser --> Authenticated : Valid Credentials
+        ValidatingUser --> LoginError : Invalid Credentials
+        LoginError --> WaitingForInput
+    }
+    
+    state Authenticated {
+        [*] --> Dashboard
+        Dashboard --> FileUpload : Upload File
+        Dashboard --> Settings : Configure
+        Dashboard --> History : View History
+        Dashboard --> Logout : Sign Out
+    }
+    
+    state FileUpload {
+        [*] --> ValidatingFile
+        ValidatingFile --> FileValid : Validation Passed
+        ValidatingFile --> FileInvalid : Validation Failed
+        FileInvalid --> Dashboard : Show Error
+        FileValid --> StoringFile : Save File
+        StoringFile --> ProcessingQueued : File Stored
+    }
+    
+    state ProcessingQueued {
+        [*] --> Initializing
+        Initializing --> LoadingData : Start Processing
+        LoadingData --> DataLoaded : Success
+        LoadingData --> LoadError : Failed
+        LoadError --> ErrorState : Log Error
+    }
+    
+    state DataLoaded {
+        [*] --> Chunking
+        Chunking --> ChunksCreated : Split Complete
+        ChunksCreated --> DetectionStarted : Start Detection
+    }
+    
+    state DetectionStarted {
+        [*] --> ZScoreDetection
+        ZScoreDetection --> IQRDetection : Z-Score Complete
+        IQRDetection --> IsolationForestDetection : IQR Complete
+        IsolationForestDetection --> OneClassSVMDetection : IF Complete
+        OneClassSVMDetection --> ConsensusApplication : SVM Complete
+    }
+    
+    state ConsensusApplication {
+        [*] --> AggregatingResults
+        AggregatingResults --> ResultsCalculated : Aggregation Complete
+        ResultsCalculated --> StoringResults : Save Results
+    }
+    
+    state StoringResults {
+        [*] --> UpdatingDatabase
+        UpdatingDatabase --> ResultsStored : Database Updated
+        ResultsStored --> ProcessingComplete : All Complete
+    }
+    
+    state ProcessingComplete {
+        [*] --> ResultsReady
+        ResultsReady --> NotificationSent : Notify User
+        NotificationSent --> Dashboard : Return to Dashboard
+    }
+    
+    state ErrorState {
+        [*] --> ErrorLogged
+        ErrorLogged --> ErrorNotified : Notify User
+        ErrorNotified --> Dashboard : Return to Dashboard
+    }
+    
+    state Settings {
+        [*] --> ConfigForm
+        ConfigForm --> ValidatingConfig : Submit Changes
+        ValidatingConfig --> ConfigSaved : Valid Config
+        ValidatingConfig --> ConfigError : Invalid Config
+        ConfigError --> ConfigForm : Show Errors
+        ConfigSaved --> Dashboard : Return to Dashboard
+    }
+    
+    state History {
+        [*] --> ViewingHistory
+        ViewingHistory --> ViewingDetails : Select Upload
+        ViewingDetails --> DownloadingClean : Download Clean Data
+        ViewingDetails --> Dashboard : Return to Dashboard
+        DownloadingClean --> Dashboard : Return to Dashboard
+    }
+    
+    state Logout {
+        [*] --> SessionCleared
+        SessionCleared --> Idle : Return to Login
+    }
+```
+
+## 5. Detailed Data Flow Diagram
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '8px'}}}%%
+graph TB
+    subgraph "External Entities"
+        USER[User]
+        ADMIN[System Administrator]
+        ML_ENGINEER[ML Engineer]
+    end
+    
+    subgraph "Data Input"
+        CSV_FILE[CSV File Upload]
+        CONFIG_INPUT[Configuration Input]
+        USER_CREDENTIALS[User Credentials]
+    end
+    
+    subgraph "Processing Layer"
+        subgraph "File Processing"
+            FILE_VALIDATOR[File Validator]
+            FILE_PARSER[CSV Parser]
+            DATA_CLEANER[Data Cleaner]
+        end
+        
+        subgraph "Detection Engine"
+            NUMERIC_DETECTOR[Numeric Column Detector]
+            CHUNK_SPLITTER[Data Chunk Splitter]
+            Z_SCORE_PROCESSOR[Z-Score Processor]
+            IQR_PROCESSOR[IQR Processor]
+            IF_PROCESSOR[Isolation Forest Processor]
+            SVM_PROCESSOR[One-Class SVM Processor]
+            CONSENSUS_ENGINE[Consensus Engine]
+        end
+        
+        subgraph "Configuration Management"
+            CONFIG_LOADER[Config Loader]
+            CONFIG_VALIDATOR[Config Validator]
+            CONFIG_SAVER[Config Saver]
+        end
+    end
+    
+    subgraph "Data Storage"
+        subgraph "Primary Storage"
+            USER_DB[(User Database)]
+            UPLOAD_DB[(Upload Database)]
+            RESULT_DB[(Result Database)]
+            CONFIG_DB[(Config Database)]
+        end
+        
+        subgraph "File Storage"
+            UPLOAD_FS[Upload File Storage]
+            RESULT_FS[Result File Storage]
+            LOG_FS[Log File Storage]
+        end
+        
+        subgraph "Cache Storage"
+            REDIS_CACHE[(Redis Cache)]
+            SESSION_STORE[(Session Store)]
+        end
+    end
+    
+    subgraph "Output Layer"
+        DETECTION_REPORT[Detection Report]
+        CLEAN_DATA[Clean Dataset]
+        CONFIG_CONFIRMATION[Config Confirmation]
+        USER_NOTIFICATION[User Notification]
+    end
+    
+    %% Data Flows
+    USER --> CSV_FILE
+    USER --> CONFIG_INPUT
+    USER --> USER_CREDENTIALS
+    
+    CSV_FILE --> FILE_VALIDATOR
+    FILE_VALIDATOR --> FILE_PARSER
+    FILE_PARSER --> DATA_CLEANER
+    DATA_CLEANER --> NUMERIC_DETECTOR
+    NUMERIC_DETECTOR --> CHUNK_SPLITTER
+    
+    CHUNK_SPLITTER --> Z_SCORE_PROCESSOR
+    CHUNK_SPLITTER --> IQR_PROCESSOR
+    CHUNK_SPLITTER --> IF_PROCESSOR
+    CHUNK_SPLITTER --> SVM_PROCESSOR
+    
+    Z_SCORE_PROCESSOR --> CONSENSUS_ENGINE
+    IQR_PROCESSOR --> CONSENSUS_ENGINE
+    IF_PROCESSOR --> CONSENSUS_ENGINE
+    SVM_PROCESSOR --> CONSENSUS_ENGINE
+    
+    CONSENSUS_ENGINE --> DETECTION_REPORT
+    CONSENSUS_ENGINE --> CLEAN_DATA
+    
+    CONFIG_INPUT --> CONFIG_LOADER
+    CONFIG_LOADER --> CONFIG_VALIDATOR
+    CONFIG_VALIDATOR --> CONFIG_SAVER
+    CONFIG_SAVER --> CONFIG_CONFIRMATION
+    
+    USER_CREDENTIALS --> USER_DB
+    DETECTION_REPORT --> RESULT_DB
+    CLEAN_DATA --> RESULT_FS
+    CONFIG_SAVER --> CONFIG_DB
+    
+    DETECTION_REPORT --> USER_NOTIFICATION
+    CLEAN_DATA --> USER_NOTIFICATION
+    CONFIG_CONFIRMATION --> USER_NOTIFICATION
+```
+
+## 6. Detailed Component Diagram with Dependencies
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '8px'}}}%%
+graph TB
+    subgraph "Presentation Layer"
+        subgraph "Web Interface"
+            HTML_TEMPLATES[HTML Templates]
+            CSS_STYLES[CSS Stylesheets]
+            JS_SCRIPTS[JavaScript Files]
+            CHART_JS[Chart.js Library]
+        end
+        
+        subgraph "API Endpoints"
+            AUTH_ENDPOINTS[Authentication Endpoints]
+            UPLOAD_ENDPOINTS[Upload Endpoints]
+            RESULT_ENDPOINTS[Result Endpoints]
+            CONFIG_ENDPOINTS[Config Endpoints]
+        end
+    end
+    
+    subgraph "Business Logic Layer"
+        subgraph "Core Services"
+            DETECTION_SERVICE[Detection Service]
+            FILE_SERVICE[File Service]
+            CONFIG_SERVICE[Config Service]
+            NOTIFICATION_SERVICE[Notification Service]
+        end
+        
+        subgraph "Detection Algorithms"
+            Z_SCORE_ALGO[Z-Score Algorithm]
+            IQR_ALGO[IQR Algorithm]
+            ISOLATION_FOREST_ALGO[Isolation Forest Algorithm]
+            ONE_CLASS_SVM_ALGO[One-Class SVM Algorithm]
+        end
+        
+        subgraph "Data Processing"
+            DATA_PREPROCESSOR[Data Preprocessor]
+            CHUNK_PROCESSOR[Chunk Processor]
+            RESULT_AGGREGATOR[Result Aggregator]
+            CONSENSUS_ENGINE[Consensus Engine]
+        end
+    end
+    
+    subgraph "Data Access Layer"
+        subgraph "ORM Layer"
+            DJANGO_ORM[Django ORM]
+            MODEL_MANAGERS[Model Managers]
+            QUERY_SETS[Query Sets]
+        end
+        
+        subgraph "Database Adapters"
+            SQLITE_ADAPTER[SQLite Adapter]
+            POSTGRES_ADAPTER[PostgreSQL Adapter]
+            REDIS_ADAPTER[Redis Adapter]
+        end
+    end
+    
+    subgraph "Infrastructure Layer"
+        subgraph "Web Server"
+            DJANGO_WSGI[Django WSGI]
+            GUNICORN[Gunicorn Server]
+            NGINX[NGINX Reverse Proxy]
+        end
+        
+        subgraph "File System"
+            LOCAL_STORAGE[Local File Storage]
+            S3_STORAGE[AWS S3 Storage]
+            BACKUP_STORAGE[Backup Storage]
+        end
+        
+        subgraph "Monitoring"
+            LOGGING[Logging System]
+            METRICS[Metrics Collection]
+            ALERTING[Alert System]
+        end
+    end
+    
+    %% Dependencies
+    HTML_TEMPLATES --> AUTH_ENDPOINTS
+    CSS_STYLES --> HTML_TEMPLATES
+    JS_SCRIPTS --> CHART_JS
+    CHART_JS --> RESULT_ENDPOINTS
+    
+    AUTH_ENDPOINTS --> DETECTION_SERVICE
+    UPLOAD_ENDPOINTS --> FILE_SERVICE
+    RESULT_ENDPOINTS --> DETECTION_SERVICE
+    CONFIG_ENDPOINTS --> CONFIG_SERVICE
+    
+    DETECTION_SERVICE --> Z_SCORE_ALGO
+    DETECTION_SERVICE --> IQR_ALGO
+    DETECTION_SERVICE --> ISOLATION_FOREST_ALGO
+    DETECTION_SERVICE --> ONE_CLASS_SVM_ALGO
+    
+    Z_SCORE_ALGO --> DATA_PREPROCESSOR
+    IQR_ALGO --> DATA_PREPROCESSOR
+    ISOLATION_FOREST_ALGO --> DATA_PREPROCESSOR
+    ONE_CLASS_SVM_ALGO --> DATA_PREPROCESSOR
+    
+    DATA_PREPROCESSOR --> CHUNK_PROCESSOR
+    CHUNK_PROCESSOR --> RESULT_AGGREGATOR
+    RESULT_AGGREGATOR --> CONSENSUS_ENGINE
+    
+    DETECTION_SERVICE --> DJANGO_ORM
+    FILE_SERVICE --> DJANGO_ORM
+    CONFIG_SERVICE --> DJANGO_ORM
+    
+    DJANGO_ORM --> SQLITE_ADAPTER
+    DJANGO_ORM --> POSTGRES_ADAPTER
+    DJANGO_ORM --> REDIS_ADAPTER
+    
+    DJANGO_WSGI --> GUNICORN
+    GUNICORN --> NGINX
+    
+    FILE_SERVICE --> LOCAL_STORAGE
+    FILE_SERVICE --> S3_STORAGE
+    FILE_SERVICE --> BACKUP_STORAGE
+    
+    DETECTION_SERVICE --> LOGGING
+    FILE_SERVICE --> LOGGING
+    CONFIG_SERVICE --> LOGGING
+    LOGGING --> METRICS
+    METRICS --> ALERTING
+```
+
+## 7. Detailed Deployment Diagram
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'fontSize': '8px'}}}%%
+graph TB
+    subgraph "Client Devices"
+        DESKTOP[Desktop Browser]
+        MOBILE[Mobile Device]
+        TABLET[Tablet]
+    end
+    
+    subgraph "CDN Layer"
+        CLOUDFLARE[Cloudflare CDN]
+        STATIC_ASSETS[Static Assets Cache]
+    end
+    
+    subgraph "Load Balancer Tier"
+        LB_PRIMARY[Primary Load Balancer]
+        LB_SECONDARY[Secondary Load Balancer]
+        HEALTH_CHECK[Health Check Service]
+    end
+    
+    subgraph "Application Tier"
+        subgraph "Web Servers"
+            WEB1[Web Server 1]
+            WEB2[Web Server 2]
+            WEB3[Web Server 3]
+        end
+        
+        subgraph "Application Servers"
+            APP1[App Server 1]
+            APP2[App Server 2]
+            APP3[App Server 3]
+        end
+        
+        subgraph "Background Workers"
+            WORKER1[Detection Worker 1]
+            WORKER2[Detection Worker 2]
+            WORKER3[Notification Worker]
+        end
+    end
+    
+    subgraph "Database Tier"
+        subgraph "Primary Database"
+            DB_PRIMARY[(PostgreSQL Primary)]
+            DB_REPLICA1[(PostgreSQL Replica 1)]
+            DB_REPLICA2[(PostgreSQL Replica 2)]
+        end
+        
+        subgraph "Cache Layer"
+            REDIS_PRIMARY[(Redis Primary)]
+            REDIS_REPLICA[(Redis Replica)]
+        end
+        
+        subgraph "File Storage"
+            S3_PRIMARY[(S3 Primary)]
+            S3_BACKUP[(S3 Backup)]
+        end
+    end
+    
+    subgraph "Monitoring & Logging"
+        PROMETHEUS[Prometheus]
+        GRAFANA[Grafana Dashboard]
+        ELK_STACK[ELK Stack]
+        ALERTMANAGER[Alert Manager]
+    end
+    
+    subgraph "External Services"
+        EMAIL_SERVICE[Email Service]
+        SMS_SERVICE[SMS Service]
+        BACKUP_SERVICE[Backup Service]
+    end
+    
+    %% Connections
+    DESKTOP --> CLOUDFLARE
+    MOBILE --> CLOUDFLARE
+    TABLET --> CLOUDFLARE
+    
+    CLOUDFLARE --> STATIC_ASSETS
+    CLOUDFLARE --> LB_PRIMARY
+    CLOUDFLARE --> LB_SECONDARY
+    
+    LB_PRIMARY --> HEALTH_CHECK
+    LB_SECONDARY --> HEALTH_CHECK
+    HEALTH_CHECK --> WEB1
+    HEALTH_CHECK --> WEB2
+    HEALTH_CHECK --> WEB3
+    
+    WEB1 --> APP1
+    WEB2 --> APP2
+    WEB3 --> APP3
+    
+    APP1 --> WORKER1
+    APP2 --> WORKER2
+    APP3 --> WORKER3
+    
+    APP1 --> DB_PRIMARY
+    APP2 --> DB_REPLICA1
+    APP3 --> DB_REPLICA2
+    
+    APP1 --> REDIS_PRIMARY
+    APP2 --> REDIS_PRIMARY
+    APP3 --> REDIS_PRIMARY
+    
+    WORKER1 --> S3_PRIMARY
+    WORKER2 --> S3_PRIMARY
+    WORKER3 --> S3_BACKUP
+    
+    DB_PRIMARY --> DB_REPLICA1
+    DB_PRIMARY --> DB_REPLICA2
+    REDIS_PRIMARY --> REDIS_REPLICA
+    S3_PRIMARY --> S3_BACKUP
+    
+    APP1 --> PROMETHEUS
+    APP2 --> PROMETHEUS
+    APP3 --> PROMETHEUS
+    WORKER1 --> PROMETHEUS
+    WORKER2 --> PROMETHEUS
+    WORKER3 --> PROMETHEUS
+    
+    PROMETHEUS --> GRAFANA
+    PROMETHEUS --> ELK_STACK
+    PROMETHEUS --> ALERTMANAGER
+    
+    WORKER3 --> EMAIL_SERVICE
+    WORKER3 --> SMS_SERVICE
+    WORKER3 --> BACKUP_SERVICE
+```
+
+## Key Features of These Detailed Diagrams:
+
+1. **Granular Components**: Shows internal methods, attributes, and sub-components
+2. **Error Handling**: Includes error states and exception flows
+3. **Microservices Architecture**: Detailed service breakdown
+4. **Infrastructure Details**: Shows actual deployment components
+5. **Data Flow**: Complete data movement through the system
+6. **Dependencies**: Clear dependency relationships
+7. **Scalability**: Shows load balancing and replication
+8. **Monitoring**: Includes observability components
+
+These diagrams provide a comprehensive view of the Anomashield system at multiple levels of detail, suitable for technical documentation, architecture reviews, and system planning.

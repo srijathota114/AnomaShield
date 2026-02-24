@@ -1,0 +1,22 @@
+{
+    "z_score_threshold": 4.0,
+    "iqr_multiplier": 2.5,
+    "isolation_forest_contamination": {
+        "small": 0.01,
+        "medium": 0.015,
+        "large": 0.02
+    },
+    "one_class_svm_nu": {
+        "small": 0.01,
+        "medium": 0.015,
+        "large": 0.02
+    },
+    "consensus_threshold": 2,
+    "distributed_chunks": 3,
+    "max_file_size_mb": 10,
+    "supported_formats": [
+        ".csv",
+        ".xlsx",
+        ".xls"
+    ]
+}

@@ -1,0 +1,114 @@
+# State Diagram - Anomashield CSV Upload Processing States
+
+```mermaid
+stateDiagram-v2
+    [*] --> Uploaded : File uploaded
+    
+    state Uploaded {
+        [*] --> File_Saved : File saved to filesystem
+        File_Saved --> Record_Created : Database record created
+        Record_Created --> Processing_Queued : Processing initiated
+    }
+    
+    state Processing_Queued {
+        [*] --> Validation_Started : Start file validation
+        Validation_Started --> File_Valid : File format valid
+        Validation_Started --> File_Invalid : File format invalid
+        File_Invalid --> Error_State : Processing error
+    }
+    
+    state File_Valid {
+        [*] --> Data_Loading : Load data from file
+        Data_Loading --> Data_Loaded : Data successfully loaded
+        Data_Loading --> Load_Error : Data loading failed
+        Load_Error --> Error_State : Processing error
+    }
+    
+    state Data_Loaded {
+        [*] --> Chunking : Split data into chunks
+        Chunking --> Chunks_Created : Chunks created
+        Chunks_Created --> Detection_Started : Start detection process
+    }
+    
+    state Detection_Started {
+        [*] --> Method_1 : Z-Score detection
+        Method_1 --> Method_2 : IQR detection
+        Method_2 --> Method_3 : Isolation Forest detection
+        Method_3 --> Method_4 : One-Class SVM detection
+        Method_4 --> Consensus : Apply consensus threshold
+    }
+    
+    state Consensus {
+        [*] --> Results_Aggregated : Combine method results
+        Results_Aggregated --> Statistics_Calculated : Calculate summary statistics
+        Statistics_Calculated --> Database_Updated : Update database records
+    }
+    
+    state Database_Updated {
+        [*] --> Results_Saved : Save detailed results
+        Results_Saved --> Processing_Complete : Mark as processed
+    }
+    
+    state Processing_Complete {
+        [*] --> Results_Available : Results ready for viewing
+        Results_Available --> Download_Available : Clean data available for download
+    }
+    
+    state Error_State {
+        [*] --> Error_Logged : Log error details
+        Error_Logged --> Error_Stored : Store error in database
+        Error_Stored --> Processing_Failed : Mark processing as failed
+    }
+    
+    state Processing_Failed {
+        [*] --> User_Notified : Notify user of failure
+        User_Notified --> [*] : End state
+    }
+    
+    state Download_Available {
+        [*] --> Clean_Data_Generated : Generate clean dataset
+        Clean_Data_Generated --> File_Ready : Clean file ready
+        File_Ready --> [*] : End state
+    }
+    
+    %% Error transitions
+    Processing_Queued --> Error_State : File validation fails
+    File_Valid --> Error_State : Data loading fails
+    Data_Loaded --> Error_State : Detection process fails
+    Detection_Started --> Error_State : Any detection method fails
+    Consensus --> Error_State : Result aggregation fails
+    Database_Updated --> Error_State : Database update fails
+    
+    %% Success path
+    Processing_Complete --> [*] : Success
+```
+
+## State Descriptions:
+
+### Initial States:
+- **Uploaded**: File has been uploaded by user
+- **File_Saved**: File is saved to filesystem
+- **Record_Created**: Database record created for tracking
+
+### Processing States:
+- **Processing_Queued**: File is queued for processing
+- **File_Valid**: File format validation passed
+- **Data_Loaded**: Data successfully loaded into memory
+- **Chunks_Created**: Data split into processing chunks
+
+### Detection States:
+- **Detection_Started**: Multi-method detection process initiated
+- **Method_1-4**: Individual detection methods (Z-Score, IQR, Isolation Forest, One-Class SVM)
+- **Consensus**: Results from all methods combined using consensus threshold
+
+### Completion States:
+- **Processing_Complete**: All processing completed successfully
+- **Results_Available**: Results ready for user viewing
+- **Download_Available**: Clean data available for download
+
+### Error States:
+- **Error_State**: Error occurred during processing
+- **Processing_Failed**: Processing marked as failed
+- **User_Notified**: User notified of processing failure
+
+The state diagram shows the complete lifecycle of a CSV upload in Anomashield from initial upload through processing to final results, including error handling paths.

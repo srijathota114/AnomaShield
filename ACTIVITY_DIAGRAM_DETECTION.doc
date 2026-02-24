@@ -1,0 +1,457 @@
+# UML Activity Diagram - Data Poison Detection System
+
+## Process Description
+**File Upload and Detection Process**
+
+A complete workflow showing how a user uploads a CSV file, the system validates and processes it using multiple detection methods, applies consensus logic, saves results, and displays them to the user. Includes error handling and alternative paths.
+
+---
+
+## Activity Flow
+
+### **Start Point**
+```
+[Start] - User initiates file upload
+```
+
+---
+
+## Activities in Sequence
+
+### **Phase 1: Authentication & Initial Access**
+
+1. **[Start]** - User initiates file upload
+2. **Check User Authentication** - Verify if user is logged in
+3. **Display Login Page** - Show login form if not authenticated
+4. **User Enters Credentials** - User provides username and password
+5. **Validate Credentials** - System checks credentials against database
+6. **Display Home Page** - Show upload form and recent uploads
+
+### **Phase 2: File Selection & Upload**
+
+7. **User Selects File** - User chooses CSV/Excel file from device
+8. **User Clicks Upload Button** - User submits the form
+9. **Validate File Format** - Check if file extension is .csv, .xlsx, or .xls
+10. **Validate File Size** - Check if file size is less than 10MB
+11. **Save File to File System** - Store file in media/csv_files/ directory
+12. **Create CSVUpload Record** - Create database record for the upload
+13. **Set Processing Status** - Mark upload as "not processed" (is_processed = False)
+
+### **Phase 3: Data Loading & Preprocessing**
+
+14. **Load Configuration** - Read detection parameters from config file
+15. **Read CSV File** - Load file into pandas DataFrame
+16. **Detect Numeric Columns** - Automatically identify numeric columns in dataset
+17. **Check for Numeric Columns** - Verify if numeric columns exist
+18. **Split Data into Chunks** - Divide dataset into 3 chunks for distributed processing
+
+### **Phase 4: Detection Processing (Loop)**
+
+19. **Process Current Chunk** - Start processing one chunk
+20. **Apply Z-Score Detection** - Calculate Z-scores and flag outliers
+21. **Apply IQR Detection** - Calculate quartiles and flag outliers
+22. **Apply Isolation Forest Detection** - Use ML algorithm to detect anomalies
+23. **Apply One-Class SVM Detection** - Use SVM to detect anomalies
+24. **Collect Method Results** - Gather flags from all 4 methods
+25. **Apply Consensus Threshold** - Require at least 2 methods to agree
+26. **Check if More Chunks** - Determine if there are remaining chunks
+
+### **Phase 5: Result Aggregation**
+
+27. **Aggregate Results from All Chunks** - Combine results from all chunks
+28. **Calculate Statistics** - Compute total, flagged, and clean row counts
+29. **Calculate Detection Rate** - Compute percentage of flagged rows
+30. **Create Row-Level Results** - Generate detailed results for each row
+31. **Update CSVUpload Statistics** - Save summary statistics to database
+32. **Save DetectionResult Records** - Store detailed row results to database
+33. **Mark Upload as Processed** - Set is_processed = True
+
+### **Phase 6: Results Display**
+
+34. **Prepare Chart Data** - Format data for Chart.js visualization
+35. **Redirect to Results Page** - Navigate to results view
+36. **Query Detection Results** - Retrieve results from database
+37. **Render Results Page** - Display results with charts and tables
+38. **Initialize Charts** - Load Chart.js and render visualizations
+39. **Display Results to User** - Show flagged rows, clean rows, and statistics
+
+### **Phase 7: User Actions**
+
+40. **User Views Results** - User examines detection results
+41. **User Views Method Details** - User checks which methods flagged each row
+42. **User Downloads Clean Data** - User exports cleaned dataset
+43. **User Views History** - User navigates to upload history
+44. **User Uploads Another File** - User starts new upload process
+
+---
+
+## Decision Points
+
+### **Decision 1: User Authentication**
+```
+{Is user authenticated?}
+├─ Yes → Display Home Page
+└─ No → Display Login Page
+```
+
+### **Decision 2: Credential Validation**
+```
+{Are credentials valid?}
+├─ Yes → Display Home Page
+└─ No → Show Error Message → Display Login Page
+```
+
+### **Decision 3: File Format Validation**
+```
+{Is file format valid?}
+├─ Yes (.csv, .xlsx, .xls) → Validate File Size
+└─ No → Show Format Error → User Selects File
+```
+
+### **Decision 4: File Size Validation**
+```
+{Is file size < 10MB?}
+├─ Yes → Save File to File System
+└─ No → Show Size Error → User Selects File
+```
+
+### **Decision 5: Numeric Columns Check**
+```
+{Are numeric columns found?}
+├─ Yes → Split Data into Chunks
+└─ No → Set Processing Error → Mark Upload as Failed
+```
+
+### **Decision 6: Processing Success**
+```
+{Did processing complete successfully?}
+├─ Yes → Update CSVUpload Statistics
+└─ No → Set Processing Error → Mark Upload as Failed
+```
+
+### **Decision 7: More Chunks Check**
+```
+{Are there more chunks to process?}
+├─ Yes → Process Current Chunk (loop back)
+└─ No → Aggregate Results from All Chunks
+```
+
+### **Decision 8: User Action After Results**
+```
+{What does user want to do?}
+├─ View Method Details → User Views Method Details
+├─ Download Clean Data → User Downloads Clean Data
+├─ View History → User Views History
+├─ Upload Another → User Uploads Another File
+└─ Logout → [End]
+```
+
+---
+
+## End Points
+
+### **End Point 1: Successful Completion**
+```
+[End] - Results displayed successfully
+```
+
+### **End Point 2: Processing Error**
+```
+[End] - Processing failed, error displayed
+```
+
+### **End Point 3: User Logout**
+```
+[End] - User logged out
+```
+
+---
+
+## Complete Activity Flow (Text Format)
+
+```
+[Start] User initiates file upload
+    ↓
+[Activity] Check User Authentication
+    ↓
+{Decision} Is user authenticated?
+    ├─ No → [Activity] Display Login Page
+    │         ↓
+    │       [Activity] User Enters Credentials
+    │         ↓
+    │       [Activity] Validate Credentials
+    │         ↓
+    │       {Decision} Are credentials valid?
+    │         ├─ No → [Activity] Show Error Message
+    │         │         ↓
+    │         └─ Yes → [Activity] Display Home Page
+    │
+    └─ Yes → [Activity] Display Home Page
+              ↓
+[Activity] User Selects File
+    ↓
+[Activity] User Clicks Upload Button
+    ↓
+[Activity] Validate File Format
+    ↓
+{Decision} Is file format valid?
+    ├─ No → [Activity] Show Format Error
+    │         ↓
+    │       [Activity] User Selects File (loop back)
+    │
+    └─ Yes → [Activity] Validate File Size
+              ↓
+{Decision} Is file size < 10MB?
+    ├─ No → [Activity] Show Size Error
+    │         ↓
+    │       [Activity] User Selects File (loop back)
+    │
+    └─ Yes → [Activity] Save File to File System
+              ↓
+[Activity] Create CSVUpload Record
+    ↓
+[Activity] Set Processing Status
+    ↓
+[Activity] Load Configuration
+    ↓
+[Activity] Read CSV File
+    ↓
+[Activity] Detect Numeric Columns
+    ↓
+{Decision} Are numeric columns found?
+    ├─ No → [Activity] Set Processing Error
+    │         ↓
+    │       [Activity] Mark Upload as Failed
+    │         ↓
+    │       [End] Processing failed, error displayed
+    │
+    └─ Yes → [Activity] Split Data into Chunks
+              ↓
+[Loop] For each chunk:
+    [Activity] Process Current Chunk
+        ↓
+    [Activity] Apply Z-Score Detection
+        ↓
+    [Activity] Apply IQR Detection
+        ↓
+    [Activity] Apply Isolation Forest Detection
+        ↓
+    [Activity] Apply One-Class SVM Detection
+        ↓
+    [Activity] Collect Method Results
+        ↓
+    [Activity] Apply Consensus Threshold
+        ↓
+    {Decision} Are there more chunks?
+        ├─ Yes → [Activity] Process Current Chunk (loop back)
+        └─ No → [Activity] Aggregate Results from All Chunks
+                  ↓
+[Activity] Calculate Statistics
+    ↓
+[Activity] Calculate Detection Rate
+    ↓
+[Activity] Create Row-Level Results
+    ↓
+{Decision} Did processing complete successfully?
+    ├─ No → [Activity] Set Processing Error
+    │         ↓
+    │       [Activity] Mark Upload as Failed
+    │         ↓
+    │       [End] Processing failed, error displayed
+    │
+    └─ Yes → [Activity] Update CSVUpload Statistics
+              ↓
+[Activity] Save DetectionResult Records
+    ↓
+[Activity] Mark Upload as Processed
+    ↓
+[Activity] Prepare Chart Data
+    ↓
+[Activity] Redirect to Results Page
+    ↓
+[Activity] Query Detection Results
+    ↓
+[Activity] Render Results Page
+    ↓
+[Activity] Initialize Charts
+    ↓
+[Activity] Display Results to User
+    ↓
+[Activity] User Views Results
+    ↓
+{Decision} What does user want to do?
+    ├─ View Method Details → [Activity] User Views Method Details
+    │                          ↓
+    │                        [Activity] User Views Results (loop back)
+    │
+    ├─ Download Clean Data → [Activity] User Downloads Clean Data
+    │                          ↓
+    │                        [Activity] User Views Results (loop back)
+    │
+    ├─ View History → [Activity] User Views History
+    │                   ↓
+    │                 [Activity] User Views Results (loop back)
+    │
+    ├─ Upload Another → [Activity] User Uploads Another File
+    │                    ↓
+    │                  [Activity] User Selects File (loop back to start)
+    │
+    └─ Logout → [End] User logged out
+```
+
+---
+
+## Activity Diagram Elements
+
+### **Start Node**
+```
+[Start] - User initiates file upload
+```
+
+### **Activity Nodes** (Rectangles with rounded corners)
+- All numbered activities listed above
+
+### **Decision Nodes** (Diamonds)
+- {Is user authenticated?}
+- {Are credentials valid?}
+- {Is file format valid?}
+- {Is file size < 10MB?}
+- {Are numeric columns found?}
+- {Did processing complete successfully?}
+- {Are there more chunks?}
+- {What does user want to do?}
+
+### **Merge Nodes** (Diamonds - for joining flows)
+- After authentication checks
+- After validation checks
+- After processing loop
+
+### **Fork/Join Nodes** (Horizontal bars)
+- Optional: Can show parallel processing of chunks
+
+### **End Nodes**
+```
+[End] - Results displayed successfully
+[End] - Processing failed, error displayed
+[End] - User logged out
+```
+
+---
+
+## Swimlanes (Optional Organization)
+
+If you want to organize by responsibility:
+
+### **Swimlane 1: User**
+- User initiates file upload
+- User Selects File
+- User Clicks Upload Button
+- User Enters Credentials
+- User Views Results
+- User Views Method Details
+- User Downloads Clean Data
+- User Views History
+- User Uploads Another File
+
+### **Swimlane 2: Web Interface**
+- Check User Authentication
+- Display Login Page
+- Display Home Page
+- Validate File Format
+- Validate File Size
+- Render Results Page
+- Initialize Charts
+- Display Results to User
+
+### **Swimlane 3: File Management**
+- Save File to File System
+- Read CSV File
+- Create CSVUpload Record
+- Set Processing Status
+
+### **Swimlane 4: Detection Engine**
+- Load Configuration
+- Detect Numeric Columns
+- Split Data into Chunks
+- Process Current Chunk
+- Apply Z-Score Detection
+- Apply IQR Detection
+- Apply Isolation Forest Detection
+- Apply One-Class SVM Detection
+- Collect Method Results
+- Apply Consensus Threshold
+- Aggregate Results from All Chunks
+
+### **Swimlane 5: Data Management**
+- Calculate Statistics
+- Calculate Detection Rate
+- Create Row-Level Results
+- Update CSVUpload Statistics
+- Save DetectionResult Records
+- Mark Upload as Processed
+- Query Detection Results
+
+---
+
+## Simplified Version (High-Level Flow)
+
+For a simpler diagram, you can use this condensed version:
+
+```
+[Start] User uploads file
+    ↓
+[Activity] Validate file
+    ↓
+{Decision} File valid?
+    ├─ No → [Activity] Show error → [End]
+    └─ Yes → [Activity] Save file
+              ↓
+[Activity] Load data
+    ↓
+[Activity] Detect numeric columns
+    ↓
+{Decision} Columns found?
+    ├─ No → [Activity] Show error → [End]
+    └─ Yes → [Activity] Split into chunks
+              ↓
+[Loop] For each chunk:
+    [Activity] Apply 4 detection methods
+    [Activity] Apply consensus
+    ↓
+[Activity] Aggregate results
+    ↓
+[Activity] Save results
+    ↓
+[Activity] Display results
+    ↓
+[End] Process complete
+```
+
+---
+
+## Key Features
+
+✅ **1 Start Point**: User initiates file upload  
+✅ **44 Activities**: Complete step-by-step process  
+✅ **8 Decision Points**: Validation and branching logic  
+✅ **3 End Points**: Success, failure, and logout  
+✅ **1 Loop**: Processing multiple chunks  
+✅ **Error Handling**: Alternative paths for failures  
+✅ **User Actions**: Multiple post-processing options  
+
+---
+
+## Notes for Drawing
+
+1. **Start Node**: Draw as filled circle
+2. **Activity Nodes**: Draw as rounded rectangles
+3. **Decision Nodes**: Draw as diamonds with question
+4. **End Nodes**: Draw as filled circle with border
+5. **Flow Arrows**: Use arrows to show direction
+6. **Labels**: Label all decision branches (Yes/No, True/False)
+7. **Loop**: Use loop fragment or decision node with loop-back arrow
+8. **Swimlanes**: Optional - organize by responsibility
+9. **Fork/Join**: Optional - show parallel chunk processing
+
+This specification provides everything needed to draw a complete UML Activity Diagram for the File Upload and Detection process.
+

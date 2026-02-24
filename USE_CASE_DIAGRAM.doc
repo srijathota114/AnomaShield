@@ -1,0 +1,241 @@
+# UML Use Case Diagram - Data Poison Detection System
+
+## System Name
+**Data Poison Detection System**
+
+---
+
+## Actors
+
+### 1. **Guest User**
+- Unauthenticated visitor to the system
+
+### 2. **Registered User**
+- Authenticated user who can upload and analyze files
+
+### 3. **System Administrator**
+- User with administrative privileges
+
+---
+
+## Use Cases
+
+### **Guest User Use Cases**
+
+1. **Login**
+   - Guest user logs into the system with credentials
+
+2. **Register Account**
+   - Guest user creates a new account
+
+3. **View Home Page**
+   - Guest user views the system homepage
+
+---
+
+### **Registered User Use Cases**
+
+4. **Upload File**
+   - User uploads a CSV or Excel file for analysis
+   - **Includes**: Validate File
+
+5. **View Detection Results**
+   - User views the analysis results with charts and statistics
+   - **Extends**: Download Clean Data
+   - **Extends**: View Method Details
+
+6. **Download Clean Data**
+   - User downloads a cleaned dataset without flagged rows
+   - **Extended by**: View Detection Results
+
+7. **View Upload History**
+   - User views list of all previously uploaded files
+
+8. **Delete Upload**
+   - User deletes a previously uploaded file and its results
+
+9. **Configure Detection Settings**
+   - User adjusts detection parameters (thresholds, methods)
+   - **Extends**: Reset to Defaults
+
+10. **Reset Settings to Defaults**
+    - User resets all detection parameters to default values
+    - **Extended by**: Configure Detection Settings
+
+11. **View Method Details**
+    - User views detailed breakdown of which methods flagged which rows
+    - **Extended by**: View Detection Results
+
+12. **Logout**
+    - User logs out of the system
+
+---
+
+### **System Administrator Use Cases**
+
+13. **Access Admin Panel**
+    - Administrator accesses Django admin interface
+
+14. **Manage Users**
+    - Administrator manages user accounts
+
+15. **View System Logs**
+    - Administrator views system activity logs
+
+---
+
+## Include Relationships
+
+```
+Upload File <<include>> Validate File
+```
+
+**Explanation**: 
+- Every file upload must include file validation (checking file type, size, format)
+
+---
+
+## Extend Relationships
+
+```
+View Detection Results <<extend>> Download Clean Data
+View Detection Results <<extend>> View Method Details
+Configure Detection Settings <<extend>> Reset to Defaults
+```
+
+**Explanation**:
+- **View Detection Results** can optionally extend to **Download Clean Data** (user may download after viewing)
+- **View Detection Results** can optionally extend to **View Method Details** (user may view detailed breakdown)
+- **Configure Detection Settings** can optionally extend to **Reset to Defaults** (user may reset while configuring)
+
+---
+
+## Use Case Diagram Structure
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│           Data Poison Detection System                       │
+│                                                              │
+│  ┌────────────────────────────────────────────────────┐    │
+│  │  Guest User Use Cases                              │    │
+│  │  • Login                                           │    │
+│  │  • Register Account                                │    │
+│  │  • View Home Page                                  │    │
+│  └────────────────────────────────────────────────────┘    │
+│                                                              │
+│  ┌────────────────────────────────────────────────────┐    │
+│  │  Registered User Use Cases                         │    │
+│  │  • Upload File <<include>> Validate File           │    │
+│  │  • View Detection Results                           │    │
+│  │    <<extend>> Download Clean Data                  │    │
+│  │    <<extend>> View Method Details                   │    │
+│  │  • View Upload History                             │    │
+│  │  • Delete Upload                                   │    │
+│  │  • Configure Detection Settings                   │    │
+│  │    <<extend>> Reset to Defaults                    │    │
+│  │  • Logout                                          │    │
+│  └────────────────────────────────────────────────────┘    │
+│                                                              │
+│  ┌────────────────────────────────────────────────────┐    │
+│  │  System Administrator Use Cases                    │    │
+│  │  • Access Admin Panel                              │    │
+│  │  • Manage Users                                    │    │
+│  │  • View System Logs                                │    │
+│  └────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Actor-Use Case Mapping
+
+### Guest User
+- Login
+- Register Account
+- View Home Page
+
+### Registered User
+- Upload File
+- View Detection Results
+- Download Clean Data
+- View Upload History
+- Delete Upload
+- Configure Detection Settings
+- Reset Settings to Defaults
+- View Method Details
+- Logout
+
+### System Administrator
+- Access Admin Panel
+- Manage Users
+- View System Logs
+- *(All Registered User use cases)*
+
+---
+
+## Summary
+
+**Total Actors**: 3
+- Guest User
+- Registered User
+- System Administrator
+
+**Total Use Cases**: 15
+- 3 for Guest User
+- 9 for Registered User
+- 3 for System Administrator
+
+**Include Relationships**: 1
+- Upload File → Validate File
+
+**Extend Relationships**: 3
+- View Detection Results → Download Clean Data
+- View Detection Results → View Method Details
+- Configure Detection Settings → Reset to Defaults
+
+---
+
+## Notes for UML Diagram Drawing
+
+1. **Actors**: Draw as stick figures on the left and right sides
+2. **Use Cases**: Draw as ovals inside the system boundary rectangle
+3. **System Boundary**: Draw a rectangle labeled "Data Poison Detection System"
+4. **Associations**: Draw lines connecting actors to their use cases
+5. **Include**: Draw dashed arrow with <<include>> label (pointing from base to included)
+6. **Extend**: Draw dashed arrow with <<extend>> label (pointing from extension to base)
+7. **Generalization**: System Administrator can inherit from Registered User (optional)
+
+---
+
+## Simple Text Representation
+
+```
+ACTORS:
+- Guest User
+- Registered User  
+- System Administrator
+
+USE CASES:
+1. Login
+2. Register Account
+3. View Home Page
+4. Upload File
+5. View Detection Results
+6. Download Clean Data
+7. View Upload History
+8. Delete Upload
+9. Configure Detection Settings
+10. Reset Settings to Defaults
+11. View Method Details
+12. Logout
+13. Access Admin Panel
+14. Manage Users
+15. View System Logs
+
+RELATIONSHIPS:
+- Upload File <<include>> Validate File
+- View Detection Results <<extend>> Download Clean Data
+- View Detection Results <<extend>> View Method Details
+- Configure Detection Settings <<extend>> Reset to Defaults
+```
+
