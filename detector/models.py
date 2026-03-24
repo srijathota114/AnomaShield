@@ -30,9 +30,8 @@ class CSVUpload(models.Model):
         return f"{self.filename} - {self.uploaded_at}"
     
     def get_file_size(self):
-        """Get file size in MB"""
-        if self.file:
-            return round(self.file.size / (1024 * 1024), 2)
+        if self.file and os.path.exists(self.file.path):
+            return round(os.path.getsize(self.file.path) / (1024 * 1024), 2)
         return 0
     
     def get_clean_filename(self):
